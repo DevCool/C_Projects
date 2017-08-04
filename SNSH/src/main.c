@@ -56,13 +56,11 @@ int main(int argc, char *argv[]) {
  */
 int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 #if defined(_WIN32) || (_WIN64)
-  FD_SET rd;
+  FD_SET rd, wr;
 #else
-  fd_set rd;
+  fd_set rd, wr;
 #endif
   char msg[256];
-  char *password1 = "CODE187\n";
-  char *password2 = "CODE19\r\n";
   char entry[9];
   socklen_t addrlen = sizeof(*client);
 
@@ -71,9 +69,11 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 	      "Could not send all img data.\n");
   do {
     FD_ZERO(&rd);
+    FD_ZERO(&wr);
     FD_SET(*sockfd, &rd);
+    FD_SET(*sockfd, &wr);
 
-    if(select(*sockfd+1, &rd, NULL, NULL, NULL) < 0) {
+    if(select(*sockfd+1, &rd, &wr, NULL, NULL) < 0) {
       perror("select");
       goto error;
     }
@@ -83,15 +83,24 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
       ERROR_FIXED(sendto(*sockfd, msg, strlen(msg), 0, (struct sockaddr *)client,
 			 addrlen) != strlen(msg),
 		  "Could not send data to client.\n");
+    }
+    if(FD_ISSET(*sockfd, &wr)) {
       memset(entry, 0, sizeof entry);
       ERROR_FIXED(recvfrom(*sockfd, entry, sizeof(entry), 0, (struct sockaddr *)client,
 			   &addrlen) < 0,
 		  "Could not recv from client.\n");
-      ERROR_FIXED(strncmp(entry, "exit\n", sizeof(entry)) == 0, "You've quit SAB.\n");
-      ERROR_FIXED(strncmp(entry, "exit\r\n", sizeof(entry)) == 0, "You've quit SAB.\n");
+      if(strncmp(entry, "exit\n", sizeof(entry)) == 0) {
+	puts("You quit.");
+	close_socket(sockfd);
+	exit(0);
+      } else if(strncmp(entry, "exit\r\n", sizeof(entry)) == 0) {
+	puts("You quit.");
+	close_socket(sockfd);
+	exit(0);
+      }
     }
-  } while(strncmp(entry, password1, sizeof entry) != 0 ||
-	  strncmp(entry, password2, sizeof entry) != 0);
+  } while(strncmp(entry, "AW96B6\n", sizeof entry) != 0 ||
+	  strncmp(entry, "AW96B6\r\n", sizeof entry) != 0);
   cmd_loop(sockfd, client);
   close_socket(sockfd);
   return 0; /* return success */
