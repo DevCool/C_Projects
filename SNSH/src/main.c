@@ -26,6 +26,9 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename);
 /* main() - entry point for program.
  */
 int main(int argc, char *argv[]) {
+#if defined(_WIN32) || (_WIN64)
+  u_long on = 0;
+#endif
   sockcreate_func_t sock_funcs;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
@@ -37,6 +40,9 @@ int main(int argc, char *argv[]) {
 
   ERROR_FIXED(socket_init(SOCKET_BIND, &sock_funcs) < 0, "Could not initialize socket funcs.");
   sockfd = sock_funcs.socket_bind(argv[1], 0, &clientfd, &client);
+#if defined(_WIN32) || (_WIN64)
+  ioctlsocket(sockfd, FIONBIO, &on);
+#endif
   retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   close_socket(&sockfd);
   return retval;
@@ -64,7 +70,8 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
     ERROR_FIXED(send(*sockfd, msg, strlen(msg), 0) != (int)strlen(msg),
 		"Could not send data to client.\n");
     ERROR_FIXED(recv(*sockfd, entry, sizeof(entry), 0) < 0, "Could not recv from client.\n");
-    ERROR_FIXED(strncmp(entry, "exit\r\n", sizeof(entry)) == 0, "You've quit SAB.\n");
+    if(strncmp(entry, "exit\r\n", sizeof(entry)) == 0)
+	break;
   } while(strncmp(entry, password, sizeof(entry)) != 0);
   cmd_loop(sockfd, client);
   close_socket(sockfd);

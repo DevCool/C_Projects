@@ -19,6 +19,9 @@ int main(int argc, char *argv[]) {
   sockcreate_func_t sockfunc;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
+#if defined(_WIN32) || (_WIN64)
+  u_long on = 0;
+#endif
 
   if(argc < 2 || argc > 3) {
     printf("Usage: %s <ipaddress> [port]\n", argv[0]);
@@ -29,11 +32,17 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], 8888, &clientfd, &client)) < 0,
 		"Could not create socket.\n");
+#if defined(_WIN32) || (_WIN64)
+    ioctlsocket(sockfd, FIONBIO, &on);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   } else {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "Socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], atoi(argv[2]), &clientfd, &client)) < 0,
 		"Could not create socket.\n");
+#if defined(_WIN32) || (_WIN64)
+    ioctlsocket(sockfd, FIONBIO, &on);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   }
   close_socket(&sockfd);
@@ -45,7 +54,7 @@ int main(int argc, char *argv[]) {
 }
 
 #define COMPLETE 0
-#define DATALEN 1024
+#define DATALEN 16384
 
 int find_network_newline(char *msg, int total) {
   int i;
