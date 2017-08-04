@@ -710,45 +710,50 @@ int cmd_execute(int sockfd, char **args) {
 /* cmd_loop() - main command interface loop.
  */
 void cmd_loop(int *sockfd, struct sockaddr_in *client) {
-  FILE *sockin = NULL;
+#if defined(_WIN32) || (_WIN64)
+  FD_SET rd, wr;
+#else
+  fd_set rd, wr;
+#endif
   char line[CMD_LEN];
   char msg[1024];
   char **args = NULL;
   int status;
-
-  if(client == NULL)
-    return;
-
-  /* open file descriptors in file pointers */
-  sockin = fdopen(*sockfd, "rb");
-  if(sockin == NULL) {
-    perror("fdopen");
-    return;
-  }
-  if(setvbuf(sockin, NULL, _IOLBF, 0) != 0) {
-    perror("setvbuf (read)");
-    fclose(sockin);
-    return;
-  }
+  socklen_t addrlen = sizeof(*client);
 
 #ifdef __linux
   speakInit();
 #endif
   
   do {
-    memset(line, 0, sizeof line);
-    memset(msg, 0, sizeof msg);
-    snprintf(msg, sizeof msg, "CMD > ");
-    if(send(*sockfd, msg, strlen(msg), 0) < 0)
-      puts("Error: Cannot send message to client.");
-    if(fgets(line, sizeof line, sockin) == NULL)
-      puts("Error: Cannot recv from client.");
-    args = cmd_split(line);
-    status = cmd_execute(*sockfd, args);
-    free(args);
+    FD_ZERO(&rd);
+    FD_ZERO(&wr);
+    FD_SET(*sockfd, &rd);
+    FD_SET(*sockfd, &wr);
+
+    if(select(*sockfd+1, &rd, &wr, NULL, NULL) < 0) {
+      perror("select");
+      goto error;
+    }
+    if(FD_ISSET(*sockfd, &rd)) {
+      memset(msg, 0, sizeof msg);
+      snprintf(msg, sizeof msg, "CMD >> ");
+      if(sendto(*sockfd, msg, strlen(msg), 0, (struct sockaddr *)client,
+		addrlen) != strlen(msg)) {
+	puts("Error: Cannot send message to client.");
+      }
+    }
+    if(FD_ISSET(*sockfd, &wr)) {
+      memset(line, 0, sizeof line);
+      if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0)
+	puts("Error: Cannot recv from client.");
+      args = cmd_split(line);
+      status = cmd_execute(*sockfd, args);
+      free(args);
+    }
   } while(status);
-  fclose(sockin);
-  
+
+ error:
 #ifdef __linux
   speakCleanup();
 #endif

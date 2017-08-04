@@ -14,6 +14,9 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#ifdef __linux
+#include <fcntl.h>
+#endif
 
 #include "prs_socket/socket.h"
 #include "helper.h"
@@ -37,6 +40,9 @@ int main(int argc, char *argv[]) {
 
   ERROR_FIXED(socket_init(SOCKET_BIND, &sock_funcs) < 0, "Could not initialize socket funcs.");
   sockfd = sock_funcs.socket_bind(argv[1], 0, &clientfd, &client);
+#ifdef __linux
+  fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
   retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   close_socket(&sockfd);
   return retval;
@@ -49,22 +55,45 @@ int main(int argc, char *argv[]) {
 /* hdl_client() - handles connect client.
  */
 int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
+#if defined(_WIN32) || (_WIN64)
+  FD_SET rd, wr;
+#else
+  fd_set rd, wr;
+#endif
   char msg[256];
   char password[9];
   char entry[9];
-  if(filename == NULL) {}
-  ERROR_FIXED(send(*sockfd, SNSH_IMGDATA, strlen(SNSH_IMGDATA), 0)
-		!= strlen(SNSH_IMGDATA), "Could not send all img data.\n");
+  socklen_t addrlen = sizeof(*client);
+
+  ERROR_FIXED(sendto(*sockfd, SNSH_IMGDATA, strlen(SNSH_IMGDATA), 0,
+		     (struct sockaddr *)client, addrlen) != strlen(SNSH_IMGDATA),
+	      "Could not send all img data.\n");
   memset(password, 0, sizeof(password));
   snprintf(password, sizeof(password), "AW96B6\n");
   do {
-    memset(msg, 0, sizeof msg);
-    memset(entry, 0, sizeof entry);
-    snprintf(msg, sizeof msg, "Enter password: ");
-    ERROR_FIXED(send(*sockfd, msg, strlen(msg), 0) != (int)strlen(msg),
-		"Could not send data to client.\n");
-    ERROR_FIXED(recv(*sockfd, entry, sizeof(entry), 0) < 0, "Could not recv from client.\n");
-    ERROR_FIXED(strncmp(entry, "exit\r\n", sizeof(entry)) == 0, "You've quit SAB.\n");
+    FD_ZERO(&rd);
+    FD_ZERO(&wr);
+    FD_SET(*sockfd, &rd);
+    FD_SET(*sockfd, &wr);
+
+    if(select(*sockfd+1, &rd, &wr, NULL, NULL) < 0) {
+      perror("select");
+      goto error;
+    }
+    if(FD_ISSET(*sockfd, &rd)) {
+      memset(msg, 0, sizeof msg);
+      snprintf(msg, sizeof msg, "Enter password: ");
+      ERROR_FIXED(sendto(*sockfd, msg, strlen(msg), 0, (struct sockaddr *)client,
+			 addrlen) != strlen(msg),
+		  "Could not send data to client.\n");
+    }
+    if(FD_ISSET(*sockfd, &wr)) {
+      memset(entry, 0, sizeof entry);
+      ERROR_FIXED(recvfrom(*sockfd, entry, sizeof(entry), 0, (struct sockaddr *)client,
+			   &addrlen) < 0,
+		  "Could not recv from client.\n");
+      ERROR_FIXED(strncmp(entry, "exit\r\n", sizeof(entry)) == 0, "You've quit SAB.\n");
+    }
   } while(strncmp(entry, password, sizeof(entry)) != 0);
   cmd_loop(sockfd, client);
   close_socket(sockfd);
