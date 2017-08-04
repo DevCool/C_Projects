@@ -8,12 +8,15 @@ LDFLAGS?=-L$(BINDIR) -lprs_socket
 
 SOURCES=$(wildcard $(SRCDIR)/*.c)
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.c.o)
-LIST=$(SOURCES:$(SRCDIR)/%.c=$(BINDIR)/%)
+LIST=$(BINDIR)/test1 $(BINDIR)/test2
 
 .PHONY: all
 all: $(LIST)
 
-$(BINDIR)/%: $(OBJECTS)
+$(BINDIR)/test1: $(OBJDIR)/test1.c.o
+	$(CC) $(LDFLAGS) $< -o $@
+
+$(BINDIR)/test2: $(OBJDIR)/test2.c.o
 	$(CC) $(LDFLAGS) $< -o $@
 
 $(OBJECTS): %.c.o : %.c

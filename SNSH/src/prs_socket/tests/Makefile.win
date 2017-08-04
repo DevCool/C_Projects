@@ -8,13 +8,16 @@ LDFLAGS?=-L$(BINDIR) -lprs_socket
 
 SOURCES=$(wildcard $(SRCDIR)/*.c)
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.c.o)
-LIST=$(SOURCES:$(SRCDIR)/%.c=$(BINDIR)/%.exe)
+LIST=$(OBJDIR)/test1.exe $(OBJDIR)/test2.exe
 LIST2=$(subst /,\,$(LIST))
 
 .PHONY: all
 all: $(LIST)
 
-$(BINDIR)/%.exe: $(OBJECTS)
+$(BINDIR)/test1.exe: $(OBJECTS)
+	$(CC) $(LDFLAGS) $< -o $@ -lws2_32
+
+$(BINDIR)/test2.exe: $(OBJECTS)
 	$(CC) $(LDFLAGS) $< -o $@ -lws2_32
 
 $(OBJECTS): %.c.o : %.c
