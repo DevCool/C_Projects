@@ -711,9 +711,9 @@ int cmd_execute(int sockfd, char **args) {
  */
 void cmd_loop(int *sockfd, struct sockaddr_in *client) {
 #if defined(_WIN32) || (_WIN64)
-  FD_SET rd, wr;
+  FD_SET rd;
 #else
-  fd_set rd, wr;
+  fd_set rd;
 #endif
   char line[CMD_LEN];
   char msg[1024];
@@ -727,11 +727,9 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
   
   do {
     FD_ZERO(&rd);
-    FD_ZERO(&wr);
     FD_SET(*sockfd, &rd);
-    FD_SET(*sockfd, &wr);
 
-    if(select(*sockfd+1, &rd, &wr, NULL, NULL) < 0) {
+    if(select(*sockfd+1, &rd, NULL, NULL, NULL) < 0) {
       perror("select");
       return;
     }
@@ -742,8 +740,6 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
 		addrlen) != strlen(msg)) {
 	puts("Error: Cannot send message to client.");
       }
-    }
-    if(FD_ISSET(*sockfd, &wr)) {
       memset(line, 0, sizeof line);
       if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0)
 	puts("Error: Cannot recv from client.");
