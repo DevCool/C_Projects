@@ -32,9 +32,6 @@ int main(int argc, char *argv[]) {
   sockcreate_func_t sock_func;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
-#if defined(_WIN32) || (_WIN64)
-  u_long on = 0;
-#endif
 
   if(argc < 3 || argc > 4) {
     printf("Usage: %s -[ud] <ipaddress> <filename>\n", argv[0]);
@@ -44,9 +41,6 @@ int main(int argc, char *argv[]) {
   if(argc == 3) {
     socket_init(SOCKET_CONN, &sock_func);
     sockfd = sock_func.socket_conn(argv[1], UPLOAD_PORT, &clientfd, &client);
-#if defined(_WIN32) || (_WIN64)
-    ioctlsocket(sockfd, FIONBIO, &on);
-#endif
     retval = handle_server(&sockfd, &clientfd, &client, argv[2], &handle_upload);
     close_socket(&sockfd);
   } else {
@@ -55,18 +49,12 @@ int main(int argc, char *argv[]) {
       case 'd':
 	socket_init(SOCKET_CONN, &sock_func);
 	sockfd = sock_func.socket_conn(argv[2], DOWNLOAD_PORT, &clientfd, &client);
-#if defined(_WIN32) || (_WIN64)
-        ioctlsocket(sockfd, FIONBIO, &on);
-#endif
 	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_download);
 	close_socket(&sockfd);
 	break;
       case 'u':
 	socket_init(SOCKET_CONN, &sock_func);
 	sockfd = sock_func.socket_conn(argv[2], UPLOAD_PORT, &clientfd, &client);
-#if defined(_WIN32) || (_WIN64)
-        ioctlsocket(sockfd, FIONBIO, &on);
-#endif
 	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_upload);
 	close_socket(&sockfd);
 	break;
