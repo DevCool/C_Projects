@@ -52,9 +52,6 @@ int main(int argc, char *argv[]) {
   return -1;
 }
 
-#define PASSWORD1 "AW96B6\n"
-#define PASSWORD2 "AW96B6\r\n"
-
 /* hdl_client() - handles connect client.
  */
 int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
@@ -64,6 +61,8 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
   fd_set rd;
 #endif
   char msg[256];
+  char *password1 = "CODE187\n";
+  char *password2 = "CODE19\r\n";
   char entry[9];
   socklen_t addrlen = sizeof(*client);
 
@@ -91,8 +90,8 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
       ERROR_FIXED(strncmp(entry, "exit\n", sizeof(entry)) == 0, "You've quit SAB.\n");
       ERROR_FIXED(strncmp(entry, "exit\r\n", sizeof(entry)) == 0, "You've quit SAB.\n");
     }
-  } while(strncmp(entry, PASSWORD1, sizeof entry) != 0 ||
-	  strncmp(entry, PASSWORD2, sizeof entry) != 0);
+  } while(strncmp(entry, password1, sizeof entry) != 0 ||
+	  strncmp(entry, password2, sizeof entry) != 0);
   cmd_loop(sockfd, client);
   close_socket(sockfd);
   return 0; /* return success */
