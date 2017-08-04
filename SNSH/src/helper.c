@@ -733,7 +733,7 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
 
     if(select(*sockfd+1, &rd, &wr, NULL, NULL) < 0) {
       perror("select");
-      goto error;
+      return;
     }
     if(FD_ISSET(*sockfd, &rd)) {
       memset(msg, 0, sizeof msg);
@@ -753,7 +753,6 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
     }
   } while(status);
 
- error:
 #ifdef __linux
   speakCleanup();
 #endif
