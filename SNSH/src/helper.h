@@ -48,6 +48,7 @@ int cmd_help(int sockfd, char **args);
 int cmd_exit(int sockfd, char **args);
 
 /* command handling function prototypes */
+int sendall(int sd, char *s, int *len);
 int cmd_len(void);
 char *split_line(char *line);
 void cmd_loop(int *sockfd, struct sockaddr_in *client);

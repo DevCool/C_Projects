@@ -62,10 +62,10 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 #endif
   char msg[256];
   char entry[9];
+  int imgsize = strlen(SNSH_IMGDATA);
   socklen_t addrlen = sizeof(*client);
 
-  ERROR_FIXED(sendto(*sockfd, SNSH_IMGDATA, strlen(SNSH_IMGDATA), 0,
-		     (struct sockaddr *)client, addrlen) != strlen(SNSH_IMGDATA),
+  ERROR_FIXED(sendall(*sockfd, SNSH_IMGDATA, &imgsize) != strlen(SNSH_IMGDATA),
 	      "Could not send all img data.\n");
   do {
     FD_ZERO(&rd);

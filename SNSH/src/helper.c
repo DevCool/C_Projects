@@ -93,6 +93,23 @@ int (*builtin_func[])(int sockfd, char **args) = {
   &cmd_exit
 };
 
+/* sendall() - send an entire block of data until the end.
+ */
+int sendall(int sd, char *s, int *len) {
+  int size = *len;
+  int total = 0;
+  int bytes;
+
+  while(total < size) {
+    bytes = sendto(sd, s+total, size, 0, NULL, 0);
+    if(bytes == -1)
+      return -1;
+    total += bytes;
+    size -= total;
+  }
+  return total;
+}
+
 /* cmd_len() - returns the count of all available builtin commands.
  */
 int cmd_len(void) {
