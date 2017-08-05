@@ -735,7 +735,7 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
   char line[CMD_LEN];
   char msg[1024];
   char **args = NULL;
-  int status;
+  int status, msg_len;
   socklen_t addrlen = sizeof(*client);
 
 #ifdef __linux
@@ -746,23 +746,27 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
     FD_ZERO(&rd);
     FD_SET(*sockfd, &rd);
 
-    if(select(*sockfd+1, &rd, NULL, NULL, NULL) < 0) {
+    if(select(FD_SETSIZE, &rd, NULL, NULL, NULL) < 0) {
       perror("select");
       return;
     }
+
+    memset(msg, 0, sizeof msg);
+    snprintf(msg, sizeof msg, "CMD >> ");
+    msg_len = strlen(msg);
+    if(sendall(*sockfd, msg, &msg_len) != strlen(msg)) {
+      puts("Error: Cannot send message to client.");
+    }
+    
     if(FD_ISSET(*sockfd, &rd)) {
-      memset(msg, 0, sizeof msg);
-      snprintf(msg, sizeof msg, "CMD >> ");
-      if(sendto(*sockfd, msg, strlen(msg), 0, (struct sockaddr *)client,
-		addrlen) != strlen(msg)) {
-	puts("Error: Cannot send message to client.");
-      }
       memset(line, 0, sizeof line);
-      if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0)
+      if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0) {
 	puts("Error: Cannot recv from client.");
-      args = cmd_split(line);
-      status = cmd_execute(*sockfd, args);
-      free(args);
+      } else {
+	args = cmd_split(line);
+	status = cmd_execute(*sockfd, args);
+	free(args);
+      }
     }
   } while(status);
 
