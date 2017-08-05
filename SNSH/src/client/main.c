@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef __linux
+#include <fcntl.h>
+#endif
 
 #include "../debug.h"
 #include "../prs_socket/socket.h"
@@ -29,11 +32,17 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], 8888, &clientfd, &client)) < 0,
 		"Could not create socket.\n");
+#ifdef __linux
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   } else {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "Socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], atoi(argv[2]), &clientfd, &client)) < 0,
 		"Could not create socket.\n");
+#ifdef __linux
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   }
   close_socket(&sockfd);
@@ -73,9 +82,9 @@ int getline_network(char *msg) {
 
 int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 #if defined(_WIN32) || (_WIN64)
-  FD_SET rfds;
+  FD_SET rd;
 #else
-  fd_set rfds;
+  fd_set rd;
 #endif
   char msg[DATALEN];
   char buf[BUFSIZ];
@@ -84,27 +93,15 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
   int ret;
 
   while(1) {
-    FD_ZERO(&rfds);
-    FD_SET(*sockfd, &rfds);
-    FD_SET(STDIN_FILENO, &rfds);
+    FD_ZERO(&rd);
+    FD_SET(*sockfd, &rd);
+    FD_SET(STDIN_FILENO, &rd);
     
-    ret = select(FD_SETSIZE, &rfds, NULL, NULL, NULL);
+    ret = select(*sockfd+1, &rd, NULL, NULL, NULL);
     if(ret < 0)
       break;
 
-    if(FD_ISSET(*sockfd, &rfds)) {
-      memset(msg, 0, sizeof msg);
-      ERROR_FIXED((ret = recvfrom(*sockfd, msg, sizeof msg, 0,
-				  (struct sockaddr *)client, &addrlen)) < 0,
-		  "Could not recv data.\n");
-      if(ret == 0) {
-	puts("Connection closed.");
-	break;
-      } else {
-	printf("%s", msg);
-      }
-    }
-    if(FD_ISSET(STDIN_FILENO, &rfds)) {
+    if(FD_ISSET(STDIN_FILENO, &rd)) {
       memset(buf, 0, sizeof buf);
       if(getline_network(buf) == COMPLETE) {
 	ERROR_FIXED((bytes = sendto(*sockfd, buf, strlen(buf), 0,
@@ -114,6 +111,19 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 	  puts("Connection closed.");
 	  break;
 	}
+      }
+    }
+    if(FD_ISSET(*sockfd, &rd)) {
+      memset(msg, 0, sizeof msg);
+      ERROR_FIXED((ret = recvfrom(*sockfd, msg, sizeof msg, 0,
+				  (struct sockaddr *)client, &addrlen)) < 0,
+		  "Could not recv data.\n");
+      if(ret == 0) {
+	puts("Connection closed.");
+	break;
+      } else {
+	printf("%s", msg);
+	fflush(stdout);
       }
     }
   }
