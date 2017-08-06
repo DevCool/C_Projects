@@ -696,7 +696,7 @@ int cmd_execute(int sockfd, char **args) {
     if(sendto(sockfd, data, strlen(data), 0, NULL, 0) < 0)
       puts("Error: Could not receive data from client.");
     return 1;
-  } else if(strncmp(args[0], "", sizeof args[0]) == 0) {
+  } else if(strncmp(args[0], "", strlen(args[0])) == 0) {
     snprintf(data, sizeof data, "Error: No command entered.\r\n");
     if(sendto(sockfd, data, strlen(data), 0, NULL, 0) < 0)
       puts("Error: Could not receive data from client.");
