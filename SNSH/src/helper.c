@@ -507,7 +507,7 @@ int cmd_transfer(int sockfd, char **args) {
 	++i;
       }
       memset(data, 0, sizeof data);
-      snprintf(data, sizeof data, "Total files downloaded: %d\r\n", i-2);
+      snprintf(data, sizeof data, "Total files uploaded: %d\r\n", i-2);
       ERROR_FIXED(sendto(sockfd, data, strlen(data), 0, NULL, 0) != (int)strlen(data),
 		  "Could not send data to client.");
     } else if(strcmp(args[1], "download") == 0) {

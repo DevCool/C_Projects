@@ -130,7 +130,7 @@ int hdl_upload(int *sockfd, struct sockaddr_in *client, const char *filename) {
     memset(data, 0, sizeof data);
     snprintf(data, sizeof data, "Transfer complete!\r\n");
     ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
-		       sizeof(*client)) != (int)strlen(data),
+		       sizeof(*client)) != strlen(data),
 		"Send data to client failed.");
   }
   close_socket(sockfd);
