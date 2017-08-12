@@ -399,7 +399,7 @@ int cmd_write(int sockfd, char **args) {
 		  "Could not send data to client.\n");
       ERROR_FIXED((bytes = recvfrom(sockfd, line, sizeof(line), 0, NULL, NULL)) < 0,
 		  "Could not recv data from client.\n");
-      if(strncmp(line, "EOF\r\n", sizeof(line)) == 0)
+      if(strncmp(line, "EOF\r\n", sizeof(line)) == 0 || strncmp(line, "EOF\n", sizeof(line)) == 0)
 	break;
       else
 	fprintf(fp, "%s", line);
