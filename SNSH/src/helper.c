@@ -691,7 +691,7 @@ int cmd_execute(int sockfd, char **args) {
   int i;
 
   memset(data, 0, sizeof(data));
-  if(args == NULL) {
+  if(args[0] == NULL) {
     snprintf(data, sizeof(data), "Error: No arguments given.\r\n");
     if(sendto(sockfd, data, strlen(data), 0, NULL, 0) < 0)
       puts("Error: Could not receive data from client.");
