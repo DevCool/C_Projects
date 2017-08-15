@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#ifdef __linux
+#ifdef __linux__
 #include <fcntl.h>
 #endif
 
@@ -22,6 +22,9 @@ int main(int argc, char *argv[]) {
   sockcreate_func_t sockfunc;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
+#if defined(_WIN32) || (_WIN64)
+  u_long on = 1;
+#endif
 
   if(argc < 2 || argc > 3) {
     printf("Usage: %s <ipaddress> [port]\n", argv[0]);
@@ -32,7 +35,9 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], 8888, &clientfd, &client)) < 0,
 		"Could not create socket.\n");
-#ifdef __linux
+#if defined(_WIN32) || (_WIN64)
+    ioctlsocket(sockfd, FIONBIO, (char*)&on);
+#elif __linux__
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
@@ -40,7 +45,9 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "Socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], atoi(argv[2]), &clientfd, &client)) < 0,
 		"Could not create socket.\n");
-#ifdef __linux
+#if defined(_WIN32) || (_WIN64)
+    ioctlsocket(sockfd, FIONBIO, (char*)&on);
+#elif __linux__
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
@@ -98,8 +105,6 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
     FD_SET(STDIN_FILENO, &rd);
     
     ret = select(*sockfd+1, &rd, NULL, NULL, NULL);
-    if(ret < 0)
-      break;
 
     if(FD_ISSET(STDIN_FILENO, &rd)) {
       memset(buf, 0, sizeof buf);
