@@ -23,6 +23,7 @@
 #ifdef __linux__
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <espeak/speak_lib.h>
@@ -717,9 +718,9 @@ int cmd_execute(int sockfd, char **args) {
  */
 void cmd_loop(int *sockfd, struct sockaddr_in *client) {
 #if defined(_WIN32) || (_WIN64)
-  FD_SET wr;
+	FD_SET wr;
 #elif __linux__
-  fd_set wr;
+	fd_set wr;
 #endif
   char line[CMD_LEN];
   char msg[1024];
@@ -732,26 +733,26 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
 #endif
   
   do {
-    FD_ZERO(&wr);
-    FD_SET(*sockfd, &wr);
+	FD_ZERO(&wr);
+	FD_SET(*sockfd, &wr);
+	select(*sockfd+1, NULL, &wr, NULL, NULL);
+	
+	if(FD_ISSET(*sockfd, &wr)) {
+		memset(msg, 0, sizeof msg);
+		snprintf(msg, sizeof msg, "CMD >> ");
+		msg_len = strlen(msg);
+		if(sendall(*sockfd, msg, &msg_len) < 0)
+			puts("Warning: Couldn't send prompt to client.");
+	}
 
-    select(*sockfd+1, NULL, &wr, NULL, NULL);
-    
-    if(FD_ISSET(*sockfd, &wr)) {
-      memset(msg, 0, sizeof msg);
-      snprintf(msg, sizeof msg, "CMD >> ");
-      msg_len = strlen(msg);
-      if(sendall(*sockfd, msg, &msg_len) < 0)
-	puts("Warning: Couldn't send prompt to client.");
-      memset(line, 0, sizeof line);
-      if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0) {
-        puts("Error: Cannot recv from client.");
-      } else {
-        args = cmd_split(line);
-        status = cmd_execute(*sockfd, args);
-        free(args);
-      }
-    }
+	memset(line, 0, sizeof line);
+	if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0) {
+	  puts("Error: Cannot recv from client.");
+	} else {
+	  args = cmd_split(line);
+	  status = cmd_execute(*sockfd, args);
+	  free(args);
+	}
   } while(status);
 
 #ifdef __linux__
