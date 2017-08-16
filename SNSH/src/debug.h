@@ -15,7 +15,7 @@ void die(int t, const char *msg, ...);
 
 /* Message printing macros */
 #define PRINT(T, M, ...) die2((T), M, __VA_ARGS__)
-#define PRINT_FIXED(M) fprintf(stderr, M "\n")
+#define PRINT_FIXED(M) fprintf(stderr, M)
 
 /* Check debugging macros */
 #define CHECK(T, I, M, ...) die((T), "[" I "] : " M "\n", __VA_ARGS__)
@@ -29,7 +29,7 @@ void die(int t, const char *msg, ...);
 "FILE: [%s]\nLINE: [%u]\n", ##__VA_ARGS__, __FILE__, __LINE__)
 #define DEBUG2(I, M) PRINT_FIXED("[" I "] : " M "\n")
 #define DEBUG_FIXED(I, M) DEBUG2(I, M)
-#define ERROR1(T, M, ...) CHECK(T, "ERROR", M, ##__VA_ARGS__)
+#define ERROR(T, M, ...) CHECK(T, "ERROR", M, ##__VA_ARGS__)
 #define ERROR2(T, M) CHECK2(T, "ERROR", M)
 #define ERROR_FIXED(T, M) ERROR2(T, M)
 #define WARN(I, M, ...) DEBUG(I, M, ##__VA_ARGS__)

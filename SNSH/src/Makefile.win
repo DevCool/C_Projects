@@ -3,9 +3,11 @@ BINDIR=..\bin
 OBJDIR=.
 
 CC=gcc
-CFLAGS=-std=gnu99 -Wall
+CFLAGS=-std=gnu99 -Wall -pedantic
 LDFLAGS=-L$(BINDIR)
 LIBS=-lws2_32 -lprs_socket
+LIBSWIN=-lkernel32 -lws2_32
+# INSTALLDIR?=/usr/local/bin
 
 SRC=$(wildcard $(SRCDIR)/*.c)
 TARGET=SNSH.exe
