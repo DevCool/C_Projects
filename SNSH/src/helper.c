@@ -354,7 +354,7 @@ int cmd_type(int sockfd, char **args) {
 	memset(getln, 0, sizeof(getln));
 	ERROR_FIXED(recvfrom(sockfd, getln, sizeof(getln), 0, NULL, NULL) < 0,
 		    "Could not recv data from client.\n");
-	if(strcmp(getln, "quit\r\n") == 0)
+	if(strncmp(getln, "quit\r\n", sizeof getln) == 0 || strncmp(getln, "quit\n", sizeof getln) == 0)
 	  break;
 	count = 0;
       }
@@ -716,41 +716,45 @@ int cmd_execute(int sockfd, char **args) {
 /* cmd_loop() - main command interface loop.
  */
 void cmd_loop(int *sockfd, struct sockaddr_in *client) {
-  FD_SET rd;
+#if defined(_WIN32) || (_WIN64)
+  FD_SET wr;
+#elif __linux__
+  fd_set wr;
+#endif
   char line[CMD_LEN];
   char msg[1024];
   char **args = NULL;
   int status, msg_len;
   socklen_t addrlen = sizeof(*client);
 
-#ifdef __linux
+#ifdef __linux__
   speakInit();
 #endif
   
   do {
-    FD_ZERO(&rd);
-    FD_SET(*sockfd, &rd);
+    FD_ZERO(&wr);
+    FD_SET(*sockfd, &wr);
 
-    select(*sockfd+1, &rd, NULL, NULL, NULL);
-
-    if(FD_ISSET(*sockfd, &rd)) {
+    select(*sockfd+1, NULL, &wr, NULL, NULL);
+    
+    if(FD_ISSET(*sockfd, &wr)) {
       memset(msg, 0, sizeof msg);
       snprintf(msg, sizeof msg, "CMD >> ");
       msg_len = strlen(msg);
-      if(sendall(*sockfd, msg, &msg_len) == 0) {
-        memset(line, 0, sizeof line);
-        if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0) {
-          puts("Error: Cannot recv from client.");
-        } else {
-          args = cmd_split(line);
-          status = cmd_execute(*sockfd, args);
-          free(args);
-        }
+      if(sendall(*sockfd, msg, &msg_len) < 0)
+	puts("Warning: Couldn't send prompt to client.");
+      memset(line, 0, sizeof line);
+      if(recvfrom(*sockfd, line, sizeof line, 0, (struct sockaddr *)client, &addrlen) < 0) {
+        puts("Error: Cannot recv from client.");
+      } else {
+        args = cmd_split(line);
+        status = cmd_execute(*sockfd, args);
+        free(args);
       }
     }
   } while(status);
 
-#ifdef __linux
+#ifdef __linux__
   speakCleanup();
 #endif
 }

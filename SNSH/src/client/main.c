@@ -103,7 +103,7 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
     FD_ZERO(&rd);
     FD_SET(*sockfd, &rd);
     FD_SET(STDIN_FILENO, &rd);
-    
+
     ret = select(*sockfd+1, &rd, NULL, NULL, NULL);
 
     if(FD_ISSET(STDIN_FILENO, &rd)) {
@@ -116,6 +116,7 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 	  puts("Connection closed.");
 	  break;
 	}
+	fflush(stdin);
       }
     }
     if(FD_ISSET(*sockfd, &rd)) {
@@ -128,8 +129,8 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 	break;
       } else {
 	printf("%s", msg);
-	fflush(stdout);
       }
+      fflush(stdout);
     }
   }
   close_socket(sockfd);
