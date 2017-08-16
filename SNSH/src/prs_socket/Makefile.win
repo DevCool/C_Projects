@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=gnu99 -Wall -Wextra -pedantic
+CFLAGS=-std=gnu99 -Wall
 LDFLAGS=-shared
 LIBS=-lws2_32
 

@@ -104,15 +104,15 @@ int create_bind(const char *hostname, int port, int *clientfd, struct sockaddr_i
 
   ERROR_FIXED((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0, "Cannot create socket.\n");
 #if defined(_WIN32) || (_WIN64)
-  ERROR_FIXED(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(int)) == -1,
+  ERROR_FIXED(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&yes, sizeof(yes)) == -1,
 	      "Cannot set socket options.\n");
-#else
-  ERROR_FIXED(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1,
+#elif __linux__
+  ERROR_FIXED(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1,
 	      "Cannot set socket options.\n");
 #endif
   ERROR_FIXED(bind(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0,
 	      "Cannot bind port to socket.\n");
-  ERROR_FIXED(listen(sockfd, BACKLOG) < 0, "Cannot listen on socket.");
+  ERROR_FIXED(listen(sockfd, BACKLOG) < 0, "Cannot listen on socket.\n");
   ERROR_FIXED((newfd = accept(sockfd, (struct sockaddr *)&client, &clientlen)) < 0,
 	      "Cannot accept connection.\n");
   *clientaddr = client;
@@ -127,10 +127,13 @@ int create_bind(const char *hostname, int port, int *clientfd, struct sockaddr_i
 /* close_socket() - closes the socket file descriptor.
  */
 void close_socket(int *sockfd) {
-  if(sockfd)
-    close(*sockfd);
 #if defined(_WIN32) || (_WIN64)
+  if((SOCKET)*sockfd != INVALID_SOCKET)
+	  closesocket((SOCKET)*sockfd);
   WSACleanup();
+#elif __linux__
+  if(*sockfd)
+    close(*sockfd);
 #endif
 }
 
