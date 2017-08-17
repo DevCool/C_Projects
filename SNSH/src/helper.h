@@ -13,6 +13,7 @@ enum _COMMAND {
   CMD_RM,
   CMD_MKDIR,
   CMD_RMDIR,
+  CMD_CLEAR,
   CMD_TOUCH,
   CMD_TYPE,
   CMD_WRITE,
@@ -34,6 +35,7 @@ int cmd_ls(int sockfd, char **args);
 int cmd_rm(int sockfd, char **args);
 int cmd_mkdir(int sockfd, char **args);
 int cmd_rmdir(int sockfd, char **args);
+int cmd_clear(int sockfd, char **args);
 int cmd_touch(int sockfd, char **args);
 int cmd_type(int sockfd, char **args);
 int cmd_write(int sockfd, char **args);

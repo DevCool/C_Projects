@@ -37,6 +37,7 @@ char *builtin_str[] = {
   "rm",
   "mkdir",
   "rmdir",
+  "clear",
   "touch",
   "type",
   "write",
@@ -58,6 +59,7 @@ char *builtin_help[] = {
   "delete a file from the system.\r\n",
   "make a directory in the current one.\r\n",
   "delete an empty directory.\r\n",
+  "fills the output buffer with null characters.\r\n",
   "create a blank file.\r\n",
   "displays a text file 20 lines at a time.\r\n",
   "allows you to write text to a file.\r\n",
@@ -80,6 +82,7 @@ int (*builtin_func[])(int sockfd, char **args) = {
   &cmd_rm,
   &cmd_mkdir,
   &cmd_rmdir,
+  &cmd_clear,
   &cmd_touch,
   &cmd_type,
   &cmd_write,
@@ -291,6 +294,32 @@ int cmd_rmdir(int sockfd, char **args) {
   return 1;
 
 error:
+  return 1;
+}
+
+#define TERM_BUFLEN ((int)1024*6)
+
+/* cmd_clear() - fills the output buffer with null characters.
+ */
+int cmd_clear(int sockfd, char **args) {
+  char data[TERM_BUFLEN];
+  char msg[128];
+
+  memset(data, 0x20, sizeof data);
+  memset(msg, 0, sizeof msg);
+  if(args[0] != NULL && args[1] == NULL) {
+    char test[3] = "\r\n";
+    int datalen = sizeof(data);
+    memcpy(&data[datalen-3], test, 3);
+    if(sendall(sockfd, data, &datalen) < 0)
+      puts("Error: Could not clear buffer.\n");
+  } else {
+    int msglen;
+    snprintf(msg, sizeof msg, "Command takes no arguments.\r\n");
+    msglen = strlen(msg);
+    if(sendall(sockfd, msg, &msglen) < 0)
+      puts("Error: Could not send message.\n");
+  }
   return 1;
 }
 
@@ -633,27 +662,43 @@ int cmd_help(int sockfd, char **args) {
   char msg[BUFSIZ];
   int i;
 
-  memset(msg, 0, sizeof msg);
-  if(args[0] == NULL || sockfd < 0)
-    return -1;
-
-  snprintf(msg, sizeof msg, "*** Help Below ***\r\n");
-  for(i = 0; i < cmd_len(); i++) {
-    strncat(msg, builtin_str[i], sizeof msg);
-    strncat(msg, " - ", sizeof msg);
-    strncat(msg, builtin_help[i], sizeof msg);
+  if(args[0] != NULL && args[1] == NULL) {
+    memset(msg, 0, sizeof msg);
+    snprintf(msg, sizeof msg, "*** Help Below ***\r\n");
+    for(i = 0; i < cmd_len(); i++) {
+      strncat(msg, builtin_str[i], sizeof msg);
+      strncat(msg, " - ", sizeof msg);
+      strncat(msg, builtin_help[i], sizeof msg);
+    }
+    strncat(msg, "*** End Help ***\r\n", sizeof msg);
+    if(sendto(sockfd, msg, strlen(msg), 0, NULL, 0) != (int)strlen(msg))
+      puts("Error: Could not send data to client.");
+  } else {
+    int msglen;
+    memset(msg, 0, sizeof msg);
+    snprintf(msg, sizeof msg, "Command takes no arguments.\r\n");
+    msglen = strlen(msg);
+    if(sendall(sockfd, msg, &msglen) < 0)
+      puts("Could not send all data.");
   }
-  strncat(msg, "*** End Help ***\r\n", sizeof msg);
-  if(sendto(sockfd, msg, strlen(msg), 0, NULL, 0) != (int)strlen(msg))
-    puts("Error: Could not send data to client.");
-  
   return 1;
 }
 
 /* cmd_exit() - exits the remote shell.
  */
 int cmd_exit(int sockfd, char **args) {
-  return 0;
+  if(args[0] != NULL && args[1] == NULL) {
+    return 0;
+  } else {
+    char msg[256];
+    int msglen;
+    memset(msg, 0, sizeof msg);
+    snprintf(msg, sizeof msg, "Command takes no arguments.\r\n");
+    msglen = strlen(msg);
+    if(sendall(sockfd, msg, &msglen) < 0)
+      puts("Could not send all data.");
+  }
+  return 1;
 }
 
 /* cmd_split() - split an entire command string into tokens.
