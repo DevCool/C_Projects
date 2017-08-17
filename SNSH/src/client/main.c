@@ -106,31 +106,31 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 
     ret = select(*sockfd+1, &rd, NULL, NULL, NULL);
 
-    if(FD_ISSET(STDIN_FILENO, &rd)) {
-      memset(buf, 0, sizeof buf);
-      if(getline_network(buf) == COMPLETE) {
-		ERROR_FIXED((bytes = sendto(*sockfd, buf, strlen(buf), 0,
-				(struct sockaddr *)client, addrlen)) != strlen(buf),
-				"Could not send data.\n");
-		if(bytes == 0) {
-		puts("Connection closed.");
-		break;
-		}
-		fflush(stdin);
-      }
-    }
     if(FD_ISSET(*sockfd, &rd)) {
       memset(msg, 0, sizeof msg);
       ERROR_FIXED((ret = recvfrom(*sockfd, msg, sizeof msg, 0,
-			(struct sockaddr *)client, &addrlen)) < 0,
-			"Could not recv data.\n");
+				  (struct sockaddr *)client, &addrlen)) < 0,
+		  "Could not recv data.\n");
       if(ret == 0) {
-		puts("Connection closed.");
-		break;
+	puts("Connection closed.");
+	break;
       } else {
-		printf("%s", msg);
+	printf("%s", msg);
       }
       fflush(stdout);
+    }
+    if(FD_ISSET(STDIN_FILENO, &rd)) {
+      memset(buf, 0, sizeof buf);
+      if(getline_network(buf) == COMPLETE) {
+	ERROR_FIXED((bytes = sendto(*sockfd, buf, strlen(buf), 0,
+				    (struct sockaddr *)client, addrlen)) != strlen(buf),
+		    "Could not send data.\n");
+	if(bytes == 0) {
+	  puts("Connection closed.");
+	  break;
+	}
+	fflush(stdin);
+      }
     }
   }
   close_socket(sockfd);
