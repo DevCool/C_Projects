@@ -127,10 +127,13 @@ int create_bind(const char *hostname, int port, int *clientfd, struct sockaddr_i
 /* close_socket() - closes the socket file descriptor.
  */
 void close_socket(int *sockfd) {
-  if(sockfd)
-    close(*sockfd);
 #if defined(_WIN32) || (_WIN64)
+  if(*sockfd > 0)
+    clocksocket(*sockfd);
   WSACleanup();
+#else
+  if(*sockfd > 0)
+    close(*sockfd);
 #endif
 }
 
@@ -141,7 +144,8 @@ int handle_server(int *sockfd, int *clientfd, struct sockaddr_in *client, const 
 				    const char *filename)) {
   int retval;
 
-  ERROR_FIXED(sockfd == NULL || clientfd == NULL || client == NULL, "Server not setup properly!");
+  ERROR_FIXED(sockfd == NULL || clientfd == NULL || client == NULL,
+	      "Socket not properly setup.\n");
   if((*hdl_client) == NULL)
     retval = handle_client(clientfd, client, filename);
   else
@@ -149,6 +153,7 @@ int handle_server(int *sockfd, int *clientfd, struct sockaddr_in *client, const 
   return retval; /* return success */
 
 error:
+  close_socket(sockfd);
   return -1;
 }
 
@@ -163,7 +168,7 @@ int handle_client(int *sockfd, struct sockaddr_in *client, const char *filename)
   puts(buf);
   memset(buf, 0, sizeof buf);
   snprintf(buf, sizeof buf, "Server: Hello client %s\n", inet_ntoa(client->sin_addr));
-  ERROR_FIXED(send(*sockfd, buf, strlen(buf), 0) < 0, "Could not send data to client.");
+  ERROR_FIXED(send(*sockfd, buf, strlen(buf), 0) < 0, "Could not send data to client.\n");
   close_socket(sockfd);
   return 0; /* return success */
 

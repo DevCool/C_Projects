@@ -3,7 +3,7 @@ OBJDIR=..\..\..\src\prs_socket\tests
 BINDIR=..\..\..\bin
 
 CC=gcc
-CFLAGS?=-std=gnu99 -Wall -pedantic
+CFLAGS?=-std=gnu99 -Wall
 LDFLAGS?=-L$(BINDIR) -lprs_socket
 
 SOURCES=$(wildcard $(SRCDIR)/*.c)
@@ -14,13 +14,13 @@ LIST2=$(subst /,\,$(LIST))
 .PHONY: all
 all: $(LIST)
 
-$(BINDIR)/test1.exe: $(OBJECTS)
+$(BINDIR)/test1.exe: $(OBJDIR)/test1.c.o
 	$(CC) $(LDFLAGS) $< -o $@ -lws2_32
 
-$(BINDIR)/test2.exe: $(OBJECTS)
+$(BINDIR)/test2.exe: $(OBJDIR)/test2.c.o
 	$(CC) $(LDFLAGS) $< -o $@ -lws2_32
 
-$(OBJECTS): %.c.o : %.c
+$(OBJECTS): $(OBJDIR)/%.c.o : $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean remove

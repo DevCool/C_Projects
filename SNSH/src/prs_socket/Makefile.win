@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=gnu99 -Wall -Wextra -pedantic
+CFLAGS=-std=gnu99 -Wall
 LDFLAGS=-shared
 LIBS=-lws2_32
 
@@ -7,7 +7,7 @@ TARGET=prs_socket.dll
 BINDIR=..\..\bin
 OBJDIR=..\..\src\prs_socket
 SRCDIR=..\..\src\prs_socket
-# INSTALLDIR?=/usr
+
 SOURCES = $(wildcard $(SRCDIR)/*.c)
 INCLUDES = $(wildcard $(SRCDIR)/*.h)
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.c.o)
