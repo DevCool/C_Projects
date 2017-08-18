@@ -129,7 +129,7 @@ int create_bind(const char *hostname, int port, int *clientfd, struct sockaddr_i
 void close_socket(int *sockfd) {
 #if defined(_WIN32) || (_WIN64)
   if(*sockfd > 0)
-    clocksocket(*sockfd);
+    closesocket(*sockfd);
   WSACleanup();
 #else
   if(*sockfd > 0)

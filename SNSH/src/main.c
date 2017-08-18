@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   ERROR_FIXED(socket_init(SOCKET_BIND, &sock_funcs) < 0, "Could not initialize socket funcs.");
   sockfd = sock_funcs.socket_bind(argv[1], 0, &clientfd, &client);
 #if defined(_WIN32) || (_WIN64)
-  ioctlsocket(sockfd, FIONBIO, (char*)&on);
+  ioctlsocket(sockfd, FIONBIO, &on);
 #elif __linux__
   fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif

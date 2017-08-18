@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED((sockfd = create_conn(argv[1], 8888, &clientfd, &client)) < 0,
 		"Could not create socket.\n");
 #if defined(_WIN32) || (_WIN64)
-    ioctlsocket(sockfd, FIONBIO, (char*)&on);
+    ioctlsocket(sockfd, FIONBIO, &on);
 #elif __linux__
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED((sockfd = create_conn(argv[1], atoi(argv[2]), &clientfd, &client)) < 0,
 		"Could not create socket.\n");
 #if defined(_WIN32) || (_WIN64)
-    ioctlsocket(sockfd, FIONBIO, (char*)&on);
+    ioctlsocket(sockfd, FIONBIO, &on);
 #elif __linux__
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif

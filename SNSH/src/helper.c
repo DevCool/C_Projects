@@ -478,7 +478,7 @@ int cmd_hostup(int sockfd, char **args) {
 	continue;
       }
 
-      if((rv = getsockopt(clientfd, SOL_SOCKET, SO_ERROR, &error, &addrlen)) != 0) {
+      if((rv = getsockopt(clientfd, SOL_SOCKET, SO_ERROR, (char *)&error, &addrlen)) != 0) {
 	fprintf(stderr, "Error connecting to socket: %s\n", strerror(rv));
 	errno = 0;
 	break;
