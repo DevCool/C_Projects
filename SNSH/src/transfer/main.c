@@ -12,9 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#ifdef __linux
-#include <fcntl.h>
-#endif
 
 /* my headers */
 #include "../debug.h"
@@ -44,9 +41,6 @@ int main(int argc, char *argv[]) {
   if(argc == 3) {
     socket_init(SOCKET_CONN, &sock_func);
     sockfd = sock_func.socket_conn(argv[1], UPLOAD_PORT, &clientfd, &client);
-#ifdef __linux
-    fcntl(sockfd, F_SETFL, O_NONBLOCK);
-#endif
     retval = handle_server(&sockfd, &clientfd, &client, argv[2], &handle_upload);
     close_socket(&sockfd);
   } else {
@@ -55,18 +49,12 @@ int main(int argc, char *argv[]) {
       case 'd':
 	socket_init(SOCKET_CONN, &sock_func);
 	sockfd = sock_func.socket_conn(argv[2], DOWNLOAD_PORT, &clientfd, &client);
-#ifdef __linux
-        fcntl(sockfd, F_SETFL, O_NONBLOCK);
-#endif
 	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_download);
 	close_socket(&sockfd);
 	break;
       case 'u':
 	socket_init(SOCKET_CONN, &sock_func);
 	sockfd = sock_func.socket_conn(argv[2], UPLOAD_PORT, &clientfd, &client);
-#ifdef __linux
-        fcntl(sockfd, F_SETFL, O_NONBLOCK);
-#endif
 	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_upload);
 	close_socket(&sockfd);
 	break;

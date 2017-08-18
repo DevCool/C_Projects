@@ -21,7 +21,6 @@
 
 /* all linux headers */
 #ifdef __linux__
-#include <unistd.h>
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/types.h>

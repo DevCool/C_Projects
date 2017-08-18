@@ -14,9 +14,6 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#ifdef __linux__
-#include <fcntl.h>
-#endif
 
 #include "prs_socket/socket.h"
 #include "helper.h"
@@ -32,9 +29,6 @@ int main(int argc, char *argv[]) {
   sockcreate_func_t sock_funcs;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
-#if defined(_WIN32) || (_WIN64)
-  u_long on = 1;
-#endif
 
   if(argc != 2) {
     printf("Usage: %s <ip-address>\n", argv[0]);
@@ -43,11 +37,6 @@ int main(int argc, char *argv[]) {
 
   ERROR_FIXED(socket_init(SOCKET_BIND, &sock_funcs) < 0, "Could not initialize socket funcs.");
   sockfd = sock_funcs.socket_bind(argv[1], 0, &clientfd, &client);
-#if defined(_WIN32) || (_WIN64)
-  ioctlsocket(sockfd, FIONBIO, &on);
-#elif __linux__
-  fcntl(sockfd, F_SETFL, O_NONBLOCK);
-#endif
   retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   close_socket(&sockfd);
   return retval;
@@ -62,7 +51,7 @@ int main(int argc, char *argv[]) {
 int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
   int imgsize = strlen(SNSH_IMGDATA);
 
-  if(sendall(*sockfd, SNSH_IMGDATA, &imgsize) == imgsize)
+  if(sendall(*sockfd, SNSH_IMGDATA, &imgsize) == strlen(SNSH_IMGDATA))
 	cmd_loop(sockfd, client);
   close_socket(sockfd);
   return 0; /* return success */
