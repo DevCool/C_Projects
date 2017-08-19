@@ -1,7 +1,7 @@
 /*********************************************************
  * main.c - SNSH Client main source file.
  *********************************************************
- * Created by Philip "5n4k3" Simonson          (2017)
+ * Created by Philip "5n4k3" Simonson
  *********************************************************
  */
 
@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef __linux__
+#include <fcntl.h>
+#endif
 
 #include "../debug.h"
 #include "../prs_socket/socket.h"
@@ -19,6 +22,9 @@ int main(int argc, char *argv[]) {
   sockcreate_func_t sockfunc;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
+#if defined(_WIN32) || (_WIN64)
+  u_long on = 1;
+#endif
 
   if(argc < 2 || argc > 3) {
     printf("Usage: %s <ipaddress> [port]\n", argv[0]);
@@ -29,11 +35,21 @@ int main(int argc, char *argv[]) {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], 8888, &clientfd, &client)) < 0,
 		"Could not create socket.\n");
+#if defined(_WIN32) || (_WIN64)
+    ioctlsocket(sockfd, FIONBIO, &on);
+#elif __linux__
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   } else {
     ERROR_FIXED(socket_init(SOCKET_CONN, &sockfunc) < 0, "Socket init failed.\n");
     ERROR_FIXED((sockfd = create_conn(argv[1], atoi(argv[2]), &clientfd, &client)) < 0,
 		"Could not create socket.\n");
+#if defined(_WIN32) || (_WIN64)
+    ioctlsocket(sockfd, FIONBIO, &on);
+#elif __linux__
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   }
   close_socket(&sockfd);
@@ -47,55 +63,75 @@ int main(int argc, char *argv[]) {
 #define COMPLETE 0
 #define DATALEN 1024
 
-int recv_splash(int sd) {
-	char splash[1024];
-	int bytes;
-	
-	do {
-		memset(splash, 0, sizeof splash);
-		bytes = recv(sd, splash, sizeof(splash)-1, 0);
-		if(bytes > 0) {
-			splash[bytes] = 0;
-			printf("%s", splash);
-		} else {
-			return -1;
-		}
-	} while(bytes);
-	return 0;
+int find_network_newline(char *msg, int total) {
+  int i;
+  for(i = 0; i < total; i++)
+    if(msg[i] == '\n')
+      return i;
+  return -1;
+}
+
+static int inbuf;
+
+int getline_network(char *msg) {
+  int bytes_read = read(STDIN_FILENO, msg, 256-inbuf);
+  short flag = -1;
+  int where = 0;
+
+  inbuf += bytes_read;
+  where = find_network_newline(msg, inbuf);
+  if(where >= 0) {
+    inbuf = 0;
+    flag = 0;
+  }
+  return flag;
 }
 
 int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
+#if defined(_WIN32) || (_WIN64)
+  FD_SET rd;
+#else
+  fd_set rd;
+#endif
   char msg[DATALEN];
   char buf[BUFSIZ];
   unsigned int bytes;
+  socklen_t addrlen;
   int ret;
 
-  ERROR_FIXED(recv_splash(*sockfd) < 0, "Error: Could not receive splash screen.\n");
-  fflush(stdout);
-  
   while(1) {
-    memset(msg, 0, sizeof msg);
-    ERROR_FIXED((ret = recv(*sockfd, msg, sizeof(msg)-1, 0)) < 0,
-	  "Could not recv data.\n");
-    if(ret == 0) {
-		puts("Connection closed.");
-		break;
-    } else {
-		printf("%s", msg);
-		fflush(stdout);
+    FD_ZERO(&rd);
+    FD_SET(*sockfd, &rd);
+    FD_SET(STDIN_FILENO, &rd);
+
+    ret = select(*sockfd+1, &rd, NULL, NULL, NULL);
+
+    if(FD_ISSET(*sockfd, &rd)) {
+      memset(msg, 0, sizeof msg);
+      ERROR_FIXED((ret = recvfrom(*sockfd, msg, sizeof msg, 0,
+				  (struct sockaddr *)client, &addrlen)) < 0,
+		  "Could not recv data.\n");
+      if(ret == 0) {
+	puts("Connection closed.");
+	break;
+      } else {
+	printf("%s", msg);
+      }
+      fflush(stdout);
     }
-    memset(buf, 0, sizeof buf);
-	if(fgets(buf, sizeof buf, stdin) != NULL) {
-		ERROR_FIXED((bytes = send(*sockfd, buf, strlen(buf), 0)) != strlen(buf),
-			"Could not send data.\n");
-		if(bytes == 0) {
-		puts("Connection closed.");
-		break;
-		}
-	} else {
-		puts("Error: Could not get a line from standard input.");
-		break;
+    if(FD_ISSET(STDIN_FILENO, &rd)) {
+      memset(buf, 0, sizeof buf);
+      if(getline_network(buf) == COMPLETE) {
+	ERROR_FIXED((bytes = sendto(*sockfd, buf, strlen(buf), 0,
+				    (struct sockaddr *)client, addrlen)) != strlen(buf),
+		    "Could not send data.\n");
+	if(bytes == 0) {
+	  puts("Connection closed.");
+	  break;
 	}
+	fflush(stdin);
+      }
+    }
   }
   close_socket(sockfd);
   return 0;

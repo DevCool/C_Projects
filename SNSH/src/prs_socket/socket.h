@@ -1,14 +1,13 @@
 #ifndef socket_h
 #define socket_h
 
-#include <unistd.h>
-
 /* some linux headers */
 #if defined(_WIN32) || (_WIN64)
 #include <ws2tcpip.h>
 #include <winsock2.h>
 #include <windows.h>
 #else
+#include <unistd.h>
 #include <sys/time.h>
 #include <sys/select.h>
 #include <sys/types.h>

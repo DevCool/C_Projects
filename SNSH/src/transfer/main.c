@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef __linux
+#include <fcntl.h>
+#endif
 
 /* my headers */
 #include "../debug.h"
@@ -41,6 +44,9 @@ int main(int argc, char *argv[]) {
   if(argc == 3) {
     socket_init(SOCKET_CONN, &sock_func);
     sockfd = sock_func.socket_conn(argv[1], UPLOAD_PORT, &clientfd, &client);
+#ifdef __linux
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
     retval = handle_server(&sockfd, &clientfd, &client, argv[2], &handle_upload);
     close_socket(&sockfd);
   } else {
@@ -49,12 +55,18 @@ int main(int argc, char *argv[]) {
       case 'd':
 	socket_init(SOCKET_CONN, &sock_func);
 	sockfd = sock_func.socket_conn(argv[2], DOWNLOAD_PORT, &clientfd, &client);
+#ifdef __linux
+        fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
 	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_download);
 	close_socket(&sockfd);
 	break;
       case 'u':
 	socket_init(SOCKET_CONN, &sock_func);
 	sockfd = sock_func.socket_conn(argv[2], UPLOAD_PORT, &clientfd, &client);
+#ifdef __linux
+        fcntl(sockfd, F_SETFL, O_NONBLOCK);
+#endif
 	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_upload);
 	close_socket(&sockfd);
 	break;
@@ -76,6 +88,7 @@ int handle_download(int *sockfd, struct sockaddr_in *client, const char *filenam
   char data[BUFSIZ];
   int bytesRead, bytesWritten;
   size_t total_bytes = 0;
+  socklen_t addrlen;
   
   if(sockfd == NULL || client == NULL || filename == NULL)
     return -1;
@@ -83,7 +96,8 @@ int handle_download(int *sockfd, struct sockaddr_in *client, const char *filenam
   if(filename == NULL)
     return 1;
   ERROR_FIXED((file = fopen(filename, "wb")) == NULL, "Could not open file for writing.");
-  while((bytesRead = recv(*sockfd, data, sizeof data, 0)) > 0) {
+  while((bytesRead = recvfrom(*sockfd, data, sizeof data, 0, (struct sockaddr *)client,
+			      &addrlen)) > 0) {
     bytesWritten = fwrite(data, 1, bytesRead, file);
     ERROR_FIXED(bytesWritten < 0, "Could not write data to file.");
     if(bytesWritten > 0)
@@ -115,7 +129,7 @@ int handle_upload(int *sockfd, struct sockaddr_in *client, const char *filename)
     return 1;
   ERROR_FIXED((file = fopen(filename, "rb")) == NULL, "Could not open file for reading.");
   while((bytesRead = fread(data, 1, sizeof data, file)) > 0) {
-    bytesWritten = send(*sockfd, data, bytesRead, 0);
+    bytesWritten = sendto(*sockfd, data, bytesRead, 0, (struct sockaddr *)client, sizeof(*client));
     ERROR_FIXED(bytesWritten < 0, "Could not send data to socket.");
     if(bytesWritten > 0)
       total_bytes += bytesWritten;
