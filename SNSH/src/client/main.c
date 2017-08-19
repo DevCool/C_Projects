@@ -53,7 +53,7 @@ int recv_splash(int sd) {
 	
 	do {
 		memset(splash, 0, sizeof splash);
-		bytes = recvfrom(sd, splash, sizeof(splash)-1, 0, NULL, 0);
+		bytes = recv(sd, splash, sizeof(splash)-1, 0);
 		if(bytes > 0) {
 			splash[bytes] = 0;
 			printf("%s", splash);
@@ -68,7 +68,6 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
   char msg[DATALEN];
   char buf[BUFSIZ];
   unsigned int bytes;
-  socklen_t addrlen;
   int ret;
 
   ERROR_FIXED(recv_splash(*sockfd) < 0, "Error: Could not receive splash screen.\n");
@@ -76,8 +75,7 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
   
   while(1) {
     memset(msg, 0, sizeof msg);
-    ERROR_FIXED((ret = recvfrom(*sockfd, msg, sizeof(msg)-1, 0,
-	  (struct sockaddr *)client, &addrlen)) < 0,
+    ERROR_FIXED((ret = recv(*sockfd, msg, sizeof(msg)-1, 0)) < 0,
 	  "Could not recv data.\n");
     if(ret == 0) {
 		puts("Connection closed.");
@@ -88,8 +86,7 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
     }
     memset(buf, 0, sizeof buf);
 	if(fgets(buf, sizeof buf, stdin) != NULL) {
-		ERROR_FIXED((bytes = sendto(*sockfd, buf, strlen(buf), 0,
-			(struct sockaddr *)client, addrlen)) != strlen(buf),
+		ERROR_FIXED((bytes = send(*sockfd, buf, strlen(buf), 0)) != strlen(buf),
 			"Could not send data.\n");
 		if(bytes == 0) {
 		puts("Connection closed.");
