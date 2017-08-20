@@ -14,9 +14,6 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#ifdef __linux__
-#include <fcntl.h>
-#endif
 
 #include "prs_socket/socket.h"
 #include "helper.h"
@@ -43,11 +40,6 @@ int main(int argc, char *argv[]) {
 
   ERROR_FIXED(socket_init(SOCKET_BIND, &sock_funcs) < 0, "Could not initialize socket funcs.");
   sockfd = sock_funcs.socket_bind(argv[1], 0, &clientfd, &client);
-#if defined(_WIN32) || (_WIN64)
-  ioctlsocket(sockfd, FIONBIO, &on);
-#elif __linux__
-  fcntl(sockfd, F_SETFL, O_NONBLOCK);
-#endif
   retval = handle_server(&sockfd, &clientfd, &client, NULL, &hdl_client);
   close_socket(&sockfd);
   return retval;
