@@ -5,31 +5,31 @@
 #define CMD_TOK_SIZE 64
 #define CMD_TOK_DELIMS " \r\n\t\a"
 
-#define SNSH_CMD  0
+#define SNSH_CMD	0
 #define SNSH_HELP 1
 
 /* commands enum */
 enum _COMMAND {
-  CMD_NONE = -1,
-  CMD_CD,
-  CMD_LS,
-  CMD_RM,
-  CMD_MKDIR,
-  CMD_RMDIR,
-  CMD_CLEAR,
-  CMD_TOUCH,
-  CMD_TYPE,
-  CMD_WRITE,
-  CMD_HOSTUP,
-  CMD_TRANSFER,
+	CMD_NONE = -1,
+	CMD_CD,
+	CMD_LS,
+	CMD_RM,
+	CMD_MKDIR,
+	CMD_RMDIR,
+	CMD_CLEAR,
+	CMD_TOUCH,
+	CMD_TYPE,
+	CMD_WRITE,
+	CMD_HOSTUP,
+	CMD_TRANSFER,
 #ifdef __linux__
-  CMD_SPEAK,
-  CMD_TERM,
-  CMD_PIVOT,
+	CMD_SPEAK,
+	CMD_TERM,
+	CMD_PIVOT,
 #endif
-  CMD_HELP,
-  CMD_EXIT,
-  CMD_COUNT
+	CMD_HELP,
+	CMD_EXIT,
+	CMD_COUNT
 };
 
 /* command function prototypes */

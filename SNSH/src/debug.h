@@ -20,7 +20,7 @@ void die(int t, const char *msg, ...);
 /* Check debugging macros */
 #define CHECK(T, I, M, ...) die((T), "[" I "] : " M "\n", __VA_ARGS__)
 #define CHECK2(T, I, M) if((T)) { PRINT_FIXED(M); goto error;\
-    errno = 0; exit(errno); }
+		errno = 0; exit(errno); }
 #define CHECK_FIXED(T, I, M) CHECK2((T), I, M)
 #define CHECK_MEM(P) CHECK2(!(P), "ERROR", "Out of memory.");
 

