@@ -5,6 +5,9 @@
 #define CMD_TOK_SIZE 64
 #define CMD_TOK_DELIMS " \r\n\t\a"
 
+#define SNSH_CMD  0
+#define SNSH_HELP 1
+
 /* commands enum */
 enum _COMMAND {
   CMD_NONE = -1,

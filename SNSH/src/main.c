@@ -29,9 +29,6 @@ int main(int argc, char *argv[]) {
   sockcreate_func_t sock_funcs;
   struct sockaddr_in client;
   int sockfd, clientfd, retval;
-#if defined(_WIN32) || (_WIN64)
-  u_long on = 1;
-#endif
 
   if(argc != 2) {
     printf("Usage: %s <ip-address>\n", argv[0]);
