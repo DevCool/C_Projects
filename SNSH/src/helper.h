@@ -25,8 +25,8 @@ enum _COMMAND {
 #ifdef __linux__
 	CMD_SPEAK,
 	CMD_TERM,
-	CMD_PIVOT,
 #endif
+	CMD_PIVOT,
 	CMD_HELP,
 	CMD_EXIT,
 	CMD_COUNT
@@ -47,8 +47,8 @@ int cmd_transfer(int sockfd, char **args);
 #ifdef __linux__
 int cmd_speak(int sockfd, char **args);
 int cmd_term(int sockfd, char **args);
-int cmd_pivot(int sockfd, char **args);
 #endif
+int cmd_pivot(int sockfd, char **args);
 int cmd_help(int sockfd, char **args);
 int cmd_exit(int sockfd, char **args);
 
