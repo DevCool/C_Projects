@@ -5,7 +5,7 @@ OBJDIR=.
 CC=gcc
 CFLAGS=-std=gnu99 -Wall
 LDFLAGS=-L$(BINDIR)
-LIBS=-lws2_32 -lprs_socket
+LIBS=-lkernel32 -lws2_32 -lprs_socket
 
 SRC=$(wildcard $(SRCDIR)/*.c)
 TARGET=SNSH.exe

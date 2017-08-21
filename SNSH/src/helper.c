@@ -638,7 +638,7 @@ int cmd_pivot(int sockfd, char **args) {
 			strncat(data, *args, sizeof data);
 		}
 
-		if(CreateProcess(NULL, data, NULL, NULL, TRUE, 0, NULL, &si, &pi) != 0) {
+		if(CreateProcess(NULL, data, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) != 0) {
 			memset(data, 0, sizeof data);
 			snprintf(data, sizeof data, "Cannot create the process.\r\n");
 			ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
