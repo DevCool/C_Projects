@@ -1,13 +1,14 @@
 SRCDIR=../src
 BINDIR=../bin
 OBJDIR=.
+MANDIR=../man
 
 CC=gcc
 CFLAGS=-std=gnu99 -Wall -pedantic
 LDFLAGS=-L$(BINDIR)
 LIBS=-lespeak -lprs_socket
 LIBSWIN=-lkernel32 -lws2_32
-INSTALLDIR?=/usr/local/bin
+INSTALLDIR?=/usr/local
 
 SRC=$(wildcard $(SRCDIR)/*.c)
 TARGET=SNSH
@@ -33,14 +34,19 @@ remove: clean
 	rm -f $(BINDIR)/$(TARGET)
 
 install:
-	echo Installing...
-	cp $(BINDIR)/$(TARGET) $(INSTALLDIR)/$(TARGET)
-	echo Done with install!
+	@echo Installing...
+	cp $(BINDIR)/$(TARGET) $(INSTALLDIR)/bin/$(TARGET)
+	cp $(MANDIR)/SNSH.8 /usr/share/man/man8/SNSH.8
+	chown root:root /usr/share/man/man8/SNSH.8
+	chmod 0644 /usr/share/man/man8/SNSH.8
+	gzip /usr/share/man/man8/SNSH.8
+	@echo Done with install!
 
 uninstall:
-	echo Uninstalling...
-	rm $(INSTALLDIR)/$(TARGET)
-	echo Uninstalled!
+	@echo Uninstalling...
+	rm -f $(INSTALLDIR)/bin/$(TARGET)
+	rm -f /usr/share/man/man8/SNSH.8.gz
+	@echo Uninstalled!
 
 depend:
 	makedepend -- $(CFLAGS) -- $(SRC)
