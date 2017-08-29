@@ -92,12 +92,6 @@ int sendall(int sd, char *s, int *len) {
 	return total;
 }
 
-/* cmd_len() - returns the count of all available builtin commands.
- */
-int cmd_len(void) {
-	return sizeof(builtin_str) / sizeof(char *);
-}
-
 /* cmd_cd() - change directory on remote machine.
  */
 int cmd_cd(int sockfd, char **args) {
@@ -766,28 +760,35 @@ error:
  */
 int cmd_execute(int sockfd, char **args) {
 	char data[BUFSIZ];
-	int i;
+	int i, found = 0;
 
 	memset(data, 0, sizeof(data));
-	if(args[0] == NULL) {
-	snprintf(data, sizeof(data), "Error: No arguments given.\r\n");
-	if(send(sockfd, data, strlen(data), 0) < 0)
-		puts("Error: Could not receive data from client.");
-	return 1;
-	} else if(strncmp(args[0], "", strlen(args[0])) == 0) {
-	snprintf(data, sizeof data, "Error: No command entered.\r\n");
-	if(send(sockfd, data, strlen(data), 0) < 0)
-		puts("Error: Could not receive data from client.");
-	return 1;
+	if(args[0] != NULL) {
+		if(strncmp(args[0], "", 1) == 0) {
+			snprintf(data, sizeof data, "Error: No command entered.\r\n");
+			if(send(sockfd, data, strlen(data), 0) < 0) {
+				puts("Error: Could not receive data from client.");
+			}
+		}
+
+		for(i = 0; i < CMD_COUNT; i++) {
+			if(strncmp(args[0], builtin_str[i][SNSH_CMD], strlen(args[0])) == 0) {
+				found = 1;
+				break;
+			} else {
+				found = 0;
+			}
+		}
 	}
 
-	for(i = 0; i < cmd_len(); i++)
-	if(strncmp(args[0], builtin_str[i][SNSH_CMD], strlen(args[0])) == 0)
+	if(found) {
 		return (*builtin_func[i])(sockfd, args);
+	} else {
+		snprintf(data, sizeof data, "Error: Command not found.\r\n");
+		if(send(sockfd, data, strlen(data), 0) < 0)
+			puts("Error: Cannot send data to client.");
+	}
 
-	snprintf(data, sizeof data, "Error: Command not found.\r\n");
-	if(send(sockfd, data, strlen(data), 0) < 0)
-	puts("Error: Cannot send data to client.");
 	return 1;
 }
 
