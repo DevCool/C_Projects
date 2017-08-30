@@ -177,27 +177,28 @@ int cmd_rm(int sockfd, char **args) {
 	char data[BUFSIZ];
 	int i = 1;
 	
-	if(args == NULL || sockfd < 0)
-	return -1;
-	else if(args[1] == NULL)
-	return -1;
-	else {
-	char msg[BUFSIZ];
-
-	while(args[i] != NULL) {
-		if(remove(args[i]) != 0) {
-	memset(msg, 0, sizeof msg);
-	snprintf(msg, sizeof msg, "Cannot remove file %s\n", args[i]);
-	ERROR_FIXED(send(sockfd, msg, strlen(msg), 0) != strlen(data),
-			"Could not send message.\n");
-		} else {
-	snprintf(msg, sizeof msg, "File %s removed.\r\n", args[i]);
-	ERROR_FIXED(send(sockfd, msg, strlen(msg), 0) != strlen(data),
-			"Could not send message.\n");
+	if(args[1] == NULL) {
+		memset(data, 0, sizeof data);
+		snprintf(data, sizeof data, "Usage: %s file1.ext ... [files]\r\n", args[0]);
+		ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+				"Could not send message.\n");
+	} else {
+		while(args[i] != NULL) {
+			if(remove(args[i]) != 0) {
+				memset(data, 0, sizeof data);
+				snprintf(data, sizeof data, "Cannot remove file %s\n", args[i]);
+				ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+					"Could not send message.\n");
+			} else {
+				memset(data, 0, sizeof data);
+				snprintf(data, sizeof data, "File %s removed.\r\n", args[i]);
+				ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
+					"Could not send message.\n");
+			}
+			++i;
 		}
-		++i;
 	}
-	}
+	memset(data, 0, sizeof data);
 	snprintf(data, sizeof data, "Total files removed %d.\r\n", i-1);
 	ERROR_FIXED(send(sockfd, data, strlen(data), 0) != strlen(data),
 			"Could not send message.\n");
