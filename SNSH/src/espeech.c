@@ -25,8 +25,8 @@
  */
 int SynthCallback(short *wav, int numsamples, espeak_EVENT *events) {
 	if(wav == NULL || numsamples < 0 || events == NULL) {}
-	
-	return 0;
+		
+		return 0;
 }
 
 /* speakInit() - This is my initialization function for espeak
@@ -35,12 +35,12 @@ int SynthCallback(short *wav, int numsamples, espeak_EVENT *events) {
 int speakInit(void) {
 	/* must be called before any other functions */
 	ERROR_FIXED(espeak_Initialize(AUDIO_OUTPUT_SYNCH_PLAYBACK, 0, NULL,
-				espeakINITIALIZE_PHONEME_EVENTS) < 0,
-				"Could not initialize espeak properly.");
+		espeakINITIALIZE_PHONEME_EVENTS) < 0,
+	"Could not initialize espeak properly.");
 	espeak_SetSynthCallback(&SynthCallback);
 	return 0;
 
-error:
+	error:
 	return -1;
 }
 
@@ -57,10 +57,10 @@ int speak(char *text, int len) {
 	espeak_ERROR speakErr;
 
 	ERROR_FIXED((speakErr = espeak_Synth(text, len, 0, 0, 0, espeakCHARS_AUTO, NULL, NULL)) != EE_OK,
-				"Something went wrong with speaking text.");
+		"Something went wrong with speaking text.");
 	return 0;
 
-error:
+	error:
 	return -1;
 }
 #endif

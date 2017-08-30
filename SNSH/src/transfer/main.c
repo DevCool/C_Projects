@@ -46,20 +46,20 @@ int main(int argc, char *argv[]) {
 	} else {
 		if(argv[1][0] == '-') {
 			switch(argv[1][1]) {
-			case 'd':
-	socket_init(SOCKET_CONN, &sock_func);
-	sockfd = sock_func.socket_conn(argv[2], DOWNLOAD_PORT, &clientfd, &client);
-	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_download);
-	close_socket(&sockfd);
-	break;
-			case 'u':
-	socket_init(SOCKET_CONN, &sock_func);
-	sockfd = sock_func.socket_conn(argv[2], UPLOAD_PORT, &clientfd, &client);
-	retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_upload);
-	close_socket(&sockfd);
-	break;
-			default:
-	printf("Unknown option '%c'\n", argv[1][1]);
+				case 'd':
+				socket_init(SOCKET_CONN, &sock_func);
+				sockfd = sock_func.socket_conn(argv[2], DOWNLOAD_PORT, &clientfd, &client);
+				retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_download);
+				close_socket(&sockfd);
+				break;
+				case 'u':
+				socket_init(SOCKET_CONN, &sock_func);
+				sockfd = sock_func.socket_conn(argv[2], UPLOAD_PORT, &clientfd, &client);
+				retval = handle_server(&sockfd, &clientfd, &client, argv[3], &handle_upload);
+				close_socket(&sockfd);
+				break;
+				default:
+				printf("Unknown option '%c'\n", argv[1][1]);
 			}
 		} else {
 			printf("Unknown switch: %s\n", argv[1]);
@@ -95,7 +95,7 @@ int handle_download(int *sockfd, struct sockaddr_in *client, const char *filenam
 		printf("Transfer completed on %s.\n", filename);
 	return 0; /* return success */
 
- error:
+	error:
 	close_socket(sockfd);
 	return 1;
 }
@@ -126,7 +126,7 @@ int handle_upload(int *sockfd, struct sockaddr_in *client, const char *filename)
 		printf("Transfer completed on %s.\n", filename);
 	return 0; /* return success */
 
-error:
+	error:
 	close_socket(sockfd);
 	return 1;
 }

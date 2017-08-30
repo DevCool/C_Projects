@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 	close_socket(&sockfd);
 	return retval;
 
- error:
+	error:
 	close_socket(&sockfd);
 	return -1;
 }
@@ -52,7 +52,7 @@ int hdl_client(int *sockfd, struct sockaddr_in *client, const char *filename) {
 	int imgsize = strlen(SNSH_IMGDATA);
 
 	if(sendall(*sockfd, SNSH_IMGDATA, &imgsize) == imgsize)
-	cmd_loop(sockfd, client);
+		cmd_loop(sockfd, client);
 	close_socket(sockfd);
 	return 0; /* return success */
 }

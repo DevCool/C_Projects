@@ -43,8 +43,8 @@ int DLL_EXPORT create_conn(const char *hostname, int port, int *clientfd, struct
 int DLL_EXPORT create_bind(const char *hostname, int port, int *clientfd, struct sockaddr_in *clientaddr);
 void DLL_EXPORT close_socket(int *sockfd);
 int DLL_EXPORT handle_server(int *sockfd, int *clientfd, struct sockaddr_in *client, const char *filename,
-			int (*hdl_client)(int *sockfd, struct sockaddr_in *client,
-						const char *filename));
+	int (*hdl_client)(int *sockfd, struct sockaddr_in *client,
+		const char *filename));
 int DLL_EXPORT handle_client(int *sockfd, struct sockaddr_in *client, const char *filename);
 
 #endif

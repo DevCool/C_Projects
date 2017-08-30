@@ -20,7 +20,7 @@ void die(int t, const char *msg, ...);
 /* Check debugging macros */
 #define CHECK(T, I, M, ...) die((T), "[" I "] : " M "\n", __VA_ARGS__)
 #define CHECK2(T, I, M) if((T)) { PRINT_FIXED(M); goto error;\
-		errno = 0; exit(errno); }
+errno = 0; exit(errno); }
 #define CHECK_FIXED(T, I, M) CHECK2((T), I, M)
 #define CHECK_MEM(P) CHECK2(!(P), "ERROR", "Out of memory.");
 
@@ -38,9 +38,9 @@ void die(int t, const char *msg, ...);
 /* File handling debugging macros */
 #define FOPEN_ERROR(P, name, mode) if(P == NULL) { \
 P = fopen(name, mode); if(P == NULL) { \
-fprintf(stderr, "[ERROR] : File was not opened.\n"); \
+	fprintf(stderr, "[ERROR] : File was not opened.\n"); \
 } else { if(NDEBUG) { DEBUG_FIXED("INFO", "File opened successfully!"); } else { \
-printf("File opened successfully!\n"); } } }
+	printf("File opened successfully!\n"); } } }
 #define FCLOSE_ERROR(P) ERROR_FIXED(fclose(P) == EOF, "File closing failed.")
 
 #endif

@@ -27,13 +27,13 @@ int socket_init(sockcreate_t init, sockcreate_func_t *socket_func) {
 	sockcreate_func_t sock_func;
 	
 	switch(init) {
-	case SOCKET_BIND:
+		case SOCKET_BIND:
 		sock_func.socket_bind = &create_bind;
 		break;
-	case SOCKET_CONN:
+		case SOCKET_CONN:
 		sock_func.socket_conn = &create_conn;
 		break;
-	default:
+		default:
 		return -1;
 	}
 	*socket_func = sock_func;
@@ -66,12 +66,12 @@ int create_conn(const char *hostname, int port, int *serverfd, struct sockaddr_i
 
 	ERROR_FIXED((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0, "Cannot create socket.");
 	ERROR_FIXED(connect(sockfd, (struct sockaddr *)&serv, sizeof serv) < 0,
-				"Could not connec to server.");
+		"Could not connec to server.");
 	*serveraddr = serv;
 	*serverfd = sockfd;
 	return sockfd;	/* returns 0 for success */
 
- error:
+	error:
 	close_socket(&sockfd);
 	return -1;
 }
@@ -105,21 +105,21 @@ int create_bind(const char *hostname, int port, int *clientfd, struct sockaddr_i
 	ERROR_FIXED((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0, "Cannot create socket.\n");
 #if defined(_WIN32) || (_WIN64)
 	ERROR_FIXED(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(int)) == -1,
-				"Cannot set socket options.\n");
+		"Cannot set socket options.\n");
 #else
 	ERROR_FIXED(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1,
-				"Cannot set socket options.\n");
+		"Cannot set socket options.\n");
 #endif
 	ERROR_FIXED(bind(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0,
-				"Cannot bind port to socket.\n");
+		"Cannot bind port to socket.\n");
 	ERROR_FIXED(listen(sockfd, BACKLOG) < 0, "Cannot listen on socket.");
 	ERROR_FIXED((newfd = accept(sockfd, (struct sockaddr *)&client, &clientlen)) < 0,
-				"Cannot accept connection.\n");
+		"Cannot accept connection.\n");
 	*clientaddr = client;
 	*clientfd = newfd;
 	return sockfd;	/* returns 0 for success */
 
- error:
+	error:
 	close_socket(&sockfd);
 	return -1;
 }
@@ -140,19 +140,19 @@ void close_socket(int *sockfd) {
 /* handle_server() - handles the main server.
  */
 int handle_server(int *sockfd, int *clientfd, struct sockaddr_in *client, const char *filename,
-			int (*hdl_client)(int *sockfd, struct sockaddr_in *client,
-						const char *filename)) {
+	int (*hdl_client)(int *sockfd, struct sockaddr_in *client,
+		const char *filename)) {
 	int retval;
 
 	ERROR_FIXED(sockfd == NULL || clientfd == NULL || client == NULL,
-				"Socket not properly setup.\n");
+		"Socket not properly setup.\n");
 	if((*hdl_client) == NULL)
 		retval = handle_client(clientfd, client, filename);
 	else
 		retval = (*hdl_client)(clientfd, client, filename);
 	return retval; /* return success */
 
-error:
+	error:
 	close_socket(sockfd);
 	return -1;
 }
@@ -172,7 +172,7 @@ int handle_client(int *sockfd, struct sockaddr_in *client, const char *filename)
 	close_socket(sockfd);
 	return 0; /* return success */
 
-error:
+	error:
 	close_socket(sockfd);
 	return -1;
 }
@@ -182,13 +182,13 @@ error:
 int WINAPI DllMain(HANDLE hModule, DWORD fdwReason, LPVOID lpReserved) {
 	/* Handle process attach */
 	switch(fdwReason) {
-	case DLL_PROCESS_ATTACH:
+		case DLL_PROCESS_ATTACH:
 		break;
-	case DLL_PROCESS_DETACH:
+		case DLL_PROCESS_DETACH:
 		break;
-	case DLL_THREAD_ATTACH:
+		case DLL_THREAD_ATTACH:
 		break;
-	case DLL_THREAD_DETACH:
+		case DLL_THREAD_DETACH:
 		break;
 	}
 

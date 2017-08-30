@@ -91,13 +91,13 @@ int hdl_download(int *sockfd, struct sockaddr_in *client, const char *filename) 
 		memset(data, 0, sizeof data);
 		snprintf(data, sizeof data, "Transfer Complete!\r\n");
 		ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
-					 sizeof(*client)) != strlen(data),
+			sizeof(*client)) != strlen(data),
 		"Send data to client failed.");
 	}
 	close_socket(sockfd);
 	return 0;
 
-error:
+	error:
 	if(file != NULL)
 		fclose(file);
 	close_socket(sockfd);
@@ -118,27 +118,27 @@ int hdl_upload(int *sockfd, struct sockaddr_in *client, const char *filename) {
 
 	ERROR_FIXED((file = fopen(filename, "wb")) == NULL, "Cannot open file for writing.");
 	while((bytesRead = recvfrom(*sockfd, data, sizeof data, 0, (struct sockaddr *)client,
-						&addrlen)) > 0) {
+		&addrlen)) > 0) {
 		bytesWritten = fwrite(data, 1, bytesRead, file);
-		ERROR_FIXED(bytesWritten < 0, "Failed to write file data.");
-		if(bytesWritten > 0)
-			total_bytes += bytesWritten;
-	}
-	fclose(file);
-	ERROR_FIXED(bytesRead < 0, "Failed to read data from server.");
-	if(bytesRead == 0) {
-		memset(data, 0, sizeof data);
-		snprintf(data, sizeof data, "Transfer complete!\r\n");
-		ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
-					 sizeof(*client)) != strlen(data),
-		"Send data to client failed.");
-	}
-	close_socket(sockfd);
-	return 0;
+	ERROR_FIXED(bytesWritten < 0, "Failed to write file data.");
+	if(bytesWritten > 0)
+		total_bytes += bytesWritten;
+}
+fclose(file);
+ERROR_FIXED(bytesRead < 0, "Failed to read data from server.");
+if(bytesRead == 0) {
+	memset(data, 0, sizeof data);
+	snprintf(data, sizeof data, "Transfer complete!\r\n");
+	ERROR_FIXED(sendto(*sockfd, data, strlen(data), 0, (struct sockaddr *)client,
+		sizeof(*client)) != strlen(data),
+	"Send data to client failed.");
+}
+close_socket(sockfd);
+return 0;
 
 error:
-	if(file != NULL)
-		fclose(file);
-	close_socket(sockfd);
-	return -1;
+if(file != NULL)
+	fclose(file);
+close_socket(sockfd);
+return -1;
 }
