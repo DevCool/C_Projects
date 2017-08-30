@@ -763,30 +763,35 @@ int cmd_execute(int sockfd, char **args) {
 	int i, found = 0;
 
 	memset(data, 0, sizeof(data));
-	if(args[0] != NULL) {
-		if(strncmp(args[0], "", 1) == 0) {
+	if(args[0] == NULL) {
+		snprintf(data, sizeof data, "Error: No data entered.\r\n");
+		if(send(sockfd, data, strlen(data), 0) != strlen(data)) {
+			puts("Error: Could not send message to client.");
+		}
+	} else if(args[0] != NULL) {
+		if(strncmp(args[0], "", strlen(args[0])) == 0) {
 			snprintf(data, sizeof data, "Error: No command entered.\r\n");
 			if(send(sockfd, data, strlen(data), 0) < 0) {
 				puts("Error: Could not receive data from client.");
 			}
-		}
+		} else {
+			for(i = 0; i < CMD_COUNT; i++) {
+				if(strncmp(args[0], builtin_str[i][SNSH_CMD], strlen(args[0])) == 0) {
+					found = 1;
+					break;
+				} else {
+					found = 0;
+				}
+			}
 
-		for(i = 0; i < CMD_COUNT; i++) {
-			if(strncmp(args[0], builtin_str[i][SNSH_CMD], strlen(args[0])) == 0) {
-				found = 1;
-				break;
+			if(found) {
+				return (*builtin_func[i])(sockfd, args);
 			} else {
-				found = 0;
+				snprintf(data, sizeof data, "Error: Command not found.\r\n");
+				if(send(sockfd, data, strlen(data), 0) < 0)
+					puts("Error: Cannot send data to client.");
 			}
 		}
-	}
-
-	if(found) {
-		return (*builtin_func[i])(sockfd, args);
-	} else {
-		snprintf(data, sizeof data, "Error: Command not found.\r\n");
-		if(send(sockfd, data, strlen(data), 0) < 0)
-			puts("Error: Cannot send data to client.");
 	}
 
 	return 1;
@@ -805,19 +810,19 @@ void cmd_loop(int *sockfd, struct sockaddr_in *client) {
 #endif
 	
 	do {
-	memset(msg, 0, sizeof msg);
-	snprintf(msg, sizeof msg, "CMD >> ");
-	msg_len = strlen(msg);
-	if(sendall(*sockfd, msg, &msg_len) < 0)
-		puts("Warning: Couldn't send prompt to client.");
-	memset(line, 0, sizeof line);
-	if(recv(*sockfd, line, sizeof line, 0) < 0) {
-		puts("Error: Cannot recv from client.");
-	} else {
-		args = cmd_split(line);
-		status = cmd_execute(*sockfd, args);
-		free(args);
-	}
+		memset(msg, 0, sizeof msg);
+		snprintf(msg, sizeof msg, "CMD >> ");
+		msg_len = strlen(msg);
+		if(sendall(*sockfd, msg, &msg_len) < 0)
+			puts("Warning: Couldn't send prompt to client.");
+		memset(line, 0, sizeof line);
+		if(recv(*sockfd, line, sizeof line, 0) < 0) {
+			puts("Error: Cannot recv from client.");
+		} else {
+			args = cmd_split(line);
+			status = cmd_execute(*sockfd, args);
+			free(args);
+		}
 	} while(status);
 
 #ifdef __linux__
