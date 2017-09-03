@@ -58,3 +58,8 @@ add_custom_target(man ALL DEPENDS ${MAN_FILES})
 # End of man page building
 # *****************************************
 
+# Install binaries
+install(TARGETS SNSH DESTINATION bin)
+install(TARGETS SNSH_client DESTINATION bin)
+install(TARGETS SNSH_transfer DESTINATION bin)
+install(FILES ${MAN_FILES} DESTINATION man/man8)
