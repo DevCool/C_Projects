@@ -1,0 +1,4 @@
+/* the configured option and settings for SNSH */
+#define SNSH_VERSION_MAJOR @SNSH_VERSION_MAJOR@
+#define SNSH_VERSION_MINOR @SNSH_VERSION_MINOR@
+
