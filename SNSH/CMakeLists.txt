@@ -32,3 +32,29 @@ target_link_libraries(SNSH_client prs_socket)
 add_executable(SNSH_transfer ${PROJECT_SOURCE_DIR}/src/transfer/main.c ${PROJECT_SOURCE_DIR}/src/transfer.c ${PROJECT_SOURCE_DIR}/src/prs_socket/socket.c)
 target_link_libraries(SNSH_transfer prs_socket)
 
+# ******************************************
+# Man pages
+# ******************************************
+
+find_program(GZIP_EXECUTABLE NAMES gzip)
+
+set(MAN_NAMES SNSH.8 SNSH_client.8)
+set(MAN_FILES)
+foreach(m IN LISTS MAN_NAMES)
+	set(mf ${CMAKE_BINARY_DIR}/${m}.gz)
+	set(ms ${CMAKE_SOURCE_DIR}/man/${m})
+	add_custom_command(OUTPUT ${mf}
+		COMMAND ${GZIP_EXECUTABLE} -c ${ms} > ${mf}
+		DEPENDS ${ms}
+		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		COMMENT "Building manpage ${mf}"
+		VERBATIM)
+	list(APPEND MAN_FILES ${mf})
+endforeach()
+
+add_custom_target(man ALL DEPENDS ${MAN_FILES})
+
+# *****************************************
+# End of man page building
+# *****************************************
+
