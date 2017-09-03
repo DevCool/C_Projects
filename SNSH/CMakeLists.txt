@@ -22,6 +22,9 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 # add library
 add_library(prs_socket ${PROJECT_SOURCE_DIR}/src/prs_socket/socket.c)
+if (WIN32)
+	target_link_libraries(prs_socket ws2_32)
+endif (WIN32)
 
 # add the executable
 add_executable(SNSH ${PROJECT_SOURCE_DIR}/src/main.c ${PROJECT_SOURCE_DIR}/src/helper.c ${PROJECT_SOURCE_DIR}/src/transfer.c ${PROJECT_SOURCE_DIR}/src/debug.c ${PROJECT_SOURCE_DIR}/src/espeech.c)
