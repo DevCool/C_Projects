@@ -5,6 +5,7 @@ project(SNSH)
 # The version number
 set (SNSH_VERSION_MAJOR 1)
 set (SNSH_VERSION_MINOR 0)
+set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -21,7 +22,7 @@ set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_BINARY_DIR}")
 
 # add library
-add_library(prs_socket ${PROJECT_SOURCE_DIR}/src/prs_socket/socket.c)
+add_library(prs_socket SHARED ${PROJECT_SOURCE_DIR}/src/prs_socket/socket.c)
 if (WIN32)
 	target_link_libraries(prs_socket ws2_32)
 endif (WIN32)
@@ -80,6 +81,10 @@ endif (UNIX)
 # *****************************************
 
 # Install binaries
+install(TARGETS prs_socket
+	RUNTIME DESTINATION ${INSTALL_DIR}
+	LIBRARY DESTINATION lib
+	)
 install(TARGETS SNSH DESTINATION bin)
 install(TARGETS SNSH_client DESTINATION bin)
 install(TARGETS SNSH_transfer DESTINATION bin)
