@@ -10,6 +10,10 @@
 #include <string.h>
 #include <errno.h>
 
+#if defined(_WIN32) || (_WIN64)
+#include <io.h>
+#endif
+
 #include "../debug.h"
 #include "../prs_socket/socket.h"
 
@@ -58,7 +62,11 @@ int find_network_newline(char *msg, int total) {
 	static int inbuf;
 
 	int getline_network(char *msg) {
+#if defined(_WIN32) || (_WIN64)
+		int bytes_read = _read(STDIN_FILENO, msg, 256-inbuf);
+#else
 		int bytes_read = read(STDIN_FILENO, msg, 256-inbuf);
+#endif
 		short flag = -1;
 		int where = 0;
 
