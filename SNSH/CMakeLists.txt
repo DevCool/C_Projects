@@ -81,7 +81,7 @@ endif (UNIX)
 # *****************************************
 
 # Install binaries
-install(TARGETS prs_socket
+install(TARGETS prs_socket DESTINATION bin
 	RUNTIME DESTINATION ${INSTALL_DIR}
 	LIBRARY DESTINATION lib
 	)
