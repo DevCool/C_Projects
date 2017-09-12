@@ -59,7 +59,7 @@ char *psh_read_line(char *s) {
   int c, i = 0;
   int size = CMD_BUFSIZE;
 
-  assert((p = malloc(size)));
+  assert((p = realloc(s, size)));
   if(!p) {
     fprintf(stderr, "Error: Out of memory.\n");
     __readLine = NULL;

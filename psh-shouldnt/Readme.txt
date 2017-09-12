@@ -12,3 +12,9 @@ working fully.
       WARNING: Shouldn't do it
            NOT this way.
 ==================================
+Updated: readline should function
+         better now but, still
+         could be issues... a lot
+         of testing needs to be
+         done.
+==================================

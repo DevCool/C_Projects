@@ -17,8 +17,10 @@ List:
                     it should be. psh ^^ is better
                     because its simple. There is
                     no reason to make something
-                    harder than it is.
-                    
+                    harder than it is. NOTE: More
+                    code, the more testing needs
+                    to be done.
+
  --- although that is sort of how strtok is ---
 --- which is why i've found a few issues with it ---
 
