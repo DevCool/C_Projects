@@ -40,7 +40,7 @@ extern int fileno(FILE *fp);
 
 /* ------------------------ Start of command shell ------------------------ */
 
-static char *__readLine = NULL;
+char *__readLine = NULL;
 
 /*
  * Free readline
@@ -59,13 +59,14 @@ char *psh_read_line(char *s) {
   int c, i = 0;
   int size = CMD_BUFSIZE;
 
-  assert((p = realloc(s, size)));
-  if(!p) {
-    fprintf(stderr, "Error: Out of memory.\n");
-    __readLine = NULL;
-    return NULL;
+  if(p == s) {
+    assert((p = realloc(p, size)));
+    if(!p) {
+      fprintf(stderr, "Error: Out of memory.\n");
+      __readLine = NULL;
+      return NULL;
+    }
   }
-  __readLine = p;
   while(1) {
     if(i >= CMD_BUFSIZE) {
       size += CMD_SIZE;
@@ -597,8 +598,7 @@ void psh_loop(void) {
 
   do {
     printf("PSH >> ");
-    line = psh_read_line(NULL);
-    if(!line) {
+    if((line = psh_read_line(NULL)) == NULL) {
       psh_free_line();
       break;
     }
