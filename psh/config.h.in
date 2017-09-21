@@ -1,0 +1,4 @@
+/* the configured option and settings for SNSH */
+#define PSH_VERSION_MAJOR @PSH_VERSION_MAJOR@
+#define PSH_VERSION_MINOR @PSH_VERSION_MINOR@
+
