@@ -484,7 +484,10 @@ int psh_help(void) {
   printf("Have phun with my $h3l7 :P\n");
 
   for(i = 0; i < PSH_COUNT; i++)
-    printf("%s\t\t- %s\n", cmds[i].a, cmds[i].b);
+    if(strlen(cmds[i].a) > 7 && strlen(cmds[i].a) < 15)
+      printf("%s\t- %s\n", cmds[i].a, cmds[i].b);
+    else
+      printf("%s\t\t- %s\n", cmds[i].a, cmds[i].b);
 
   printf("Use documentation for other programs to see how to use them.\n");
   return 1;
