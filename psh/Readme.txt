@@ -1,11 +1,12 @@
 ==================================
-PSH ( Phil's SHell ) v0.02a
+PSH ( Phil's SHell ) v0.02b
 ==================================
 Okay I finally implemented some
 stuff in my shell. Everything,
 should work okay on Windows. Have
-not gotten to test on Linux yet.
+fully tested on Linux as well.
 ==================================
-Will have to do more to get it
-working fully.
+Should fully work now without any
+memory leaks, but it's a beta now.
+More testing needed...
 ==================================

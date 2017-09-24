@@ -402,11 +402,18 @@ int psh_clear(void) {
   return 1;
 }
 
-int psh_ls(void) {
+int psh_ls(char **args, int argcnt) {
   DIR *d = NULL;
   struct dirent *dir = NULL;
   char dirname[BUFSIZ];
-  d = opendir(".");
+
+  if(argcnt > 1 && argcnt < 3)
+    d = opendir(args[1]);
+  else if(argcnt == 1)
+    d = opendir(".");
+  else
+    return 1;
+
   if(d != NULL) {
     if(getcwd(dirname, sizeof(dirname)) != NULL) {
       printf("Directory listing of %s\n", dirname);
@@ -478,7 +485,7 @@ int psh_shutdown(void) {
 int psh_help(void) {
   int i;
 
-  printf("Philip's Shell v0.02a by Philip Ruben Simonson\n"\
+  printf("Philip's Shell v0.02b by Philip Ruben Simonson\n"\
     "************************\n");
   printf("Type program names and arguments, and press enter.\n");
   printf("Have phun with my $h3l7 :P\n");
@@ -560,7 +567,7 @@ int psh_execute(char **args, int argcnt) {
     }
   }
 
-#if defined(_WIN32)
+#if defined(_WIN32) || (_WIN64)
   return psh_process(args);
 #else
   return psh_launch(args);
@@ -580,8 +587,8 @@ void psh_loop(void) {
     args = psh_split_line(line, &count);
     status = psh_execute(args, count);
     free(line);
+    free(args);
   } while(status);
-  free(args);
 }
 
 /* ------------------------ End of my command shell ----------------------- */
