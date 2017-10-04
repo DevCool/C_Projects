@@ -8,7 +8,7 @@
 #if defined(_WIN32)
 /* Include Windows headers */
 #include <windows.h>
-#elif defined(linux)
+#elif defined(__linux)
 /* Include Linux headers */
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -27,7 +27,7 @@
 #define CMD_TOK_DELIMS	" \t\r\n\a"
 #define NDEBUG
 
-#if defined(linux)
+#if defined(__linux)
 extern int mkdir(const char *path);
 extern int fileno(FILE *fp);
 #endif
@@ -97,7 +97,7 @@ char **psh_split_line(char *line, int *argcnt) {
   return tokens;
 }
 
-#if defined(linux)
+#if defined(__linux)
 int psh_launch(char **args) {
   int pid = -1, status;
 
@@ -364,6 +364,7 @@ int psh_pwd(void) {
   return 1;
 }
 
+#if defined(_WIN32) || (_WIN64)
 void cls(HANDLE hConsole) {
   COORD coordScreen = { 0, 0 };
   DWORD cCharsWritten;
@@ -387,6 +388,7 @@ void cls(HANDLE hConsole) {
   /* put the cursor at its home coord */
   SetConsoleCursorPosition(hConsole, coordScreen);
 }
+#endif
 
 int psh_clear(void) {
 #if defined(_WIN32)

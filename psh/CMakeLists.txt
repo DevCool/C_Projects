@@ -16,3 +16,4 @@ set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 # Follow will be included
 include_directories("${PROJECT_BINARY_DIR}")
 add_executable(psh ${PROJECT_SOURCE_DIR}/src/main.c ${PROJECT_SOURCE_DIR}/src/psh_cmd.c)
+target_link_libraries(psh ncurses)
