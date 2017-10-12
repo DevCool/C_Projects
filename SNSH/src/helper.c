@@ -31,48 +31,25 @@
 #endif
 
 /* builtin command strings (compared to what you enter) */
-char *builtin_str[][CMD_COUNT] = {
-	{ "cd",	"change directory to a new one.\r\n" },
-	{ "ls",	"list directory contents.\r\n" },
-	{ "rm",	"delete a file from the system.\r\n" },
-	{ "mkdir", "make a directory in the current one.\r\n" },
-	{ "rmdir", "delete an empty directory.\r\n" },
-	{ "clear", "fills the output buffer with null characters.\r\n" },
-	{ "touch", "create a blank file.\r\n" },
-	{ "type", "displays a text file 20 lines at a time.\r\n" },
-	{ "write", "allows you to write text to a file.\r\n" },
-	{ "hostup", "checks if a host is available on specified port.\r\n" },
-	{ "transfer", "transfers data from one computer to another.\r\n" },
+cmd_t commands[CMD_COUNT] = {
+	{ "cd",	"change directory to a new one.\r\n", &cmd_cd, CMD_ARGS },
+	{ "ls",	"list directory contents.\r\n", &cmd_ls, CMD_ARGS },
+	{ "rm",	"delete a file from the system.\r\n", &cmd_rm, CMD_ARGS },
+	{ "mkdir", "make a directory in the current one.\r\n", &cmd_mkdir, CMD_ARGS },
+	{ "rmdir", "delete an empty directory.\r\n", &cmd_rmdir, CMD_ARGS },
+	{ "clear", "fills the output buffer with null characters.\r\n", &cmd_clear, CMD_ARGS },
+	{ "touch", "create a blank file.\r\n", &cmd_touch, CMD_ARGS },
+	{ "type", "displays a text file 20 lines at a time.\r\n", &cmd_type, CMD_ARGS },
+	{ "write", "allows you to write text to a file.\r\n", &cmd_write, CMD_ARGS },
+	{ "hostup", "checks if a host is available on specified port.\r\n", &cmd_hostup, CMD_ARGS },
+	{ "transfer", "transfers data from one computer to another.\r\n", &cmd_transfer, CMD_ARGS },
 #ifdef __linux__
-	{ "speak", "speaks the text you type.\r\n" },
-	{ "term", "launches a command that is not builtin.\r\n" },
+	{ "speak", "speaks the text you type.\r\n", &cmd_speak, CMD_ARGS },
+	{ "term", "launches a command that is not builtin.\r\n", &cmd_term, CMD_ARGS },
 #endif
-	{ "pivot", "launches a new SNSH_client.\r\n" },
-	{ "help", "print this message.\r\n" },
-	{ "exit", "exit back to echo hello name.\r\n" }
-};
-
-/* builtin_func[]() - builtin functions array of function pointers.
- */
-int (*builtin_func[])(int sockfd, char **args) = {
-	&cmd_cd,
-	&cmd_ls,
-	&cmd_rm,
-	&cmd_mkdir,
-	&cmd_rmdir,
-	&cmd_clear,
-	&cmd_touch,
-	&cmd_type,
-	&cmd_write,
-	&cmd_hostup,
-	&cmd_transfer,
-#ifdef __linux__
-	&cmd_speak,
-	&cmd_term,
-#endif
-	&cmd_pivot,
-	&cmd_help,
-	&cmd_exit
+	{ "pivot", "launches a new SNSH_client.\r\n", &cmd_pivot, CMD_ARGS },
+	{ "help", "print this message.\r\n", &cmd_help, CMD_VOID },
+	{ "exit", "exit back to echo hello name.\r\n", &cmd_exit, CMD_VOID }
 };
 
 /* sendall() - send an entire block of data until the end.
@@ -685,47 +662,27 @@ int cmd_pivot(int sockfd, char **args) {
 
 /* cmd_help() - displays help about the list of commands available.
  */
-int cmd_help(int sockfd, char **args) {
+int cmd_help(int sockfd) {
 		char msg[BUFSIZ];
 		int i;
 
-		if(args[0] != NULL && args[1] == NULL) {
-			memset(msg, 0, sizeof msg);
-			snprintf(msg, sizeof msg, "*** Help Below ***\r\n");
-			for(i = 0; i < CMD_COUNT; i++) {
-				strncat(msg, builtin_str[i][SNSH_CMD], sizeof msg);
-				strncat(msg, " - ", sizeof msg);
-				strncat(msg, builtin_str[i][SNSH_HELP], sizeof msg);
-			}
-			strncat(msg, "*** End Help ***\r\n", sizeof msg);
-			if(send(sockfd, msg, strlen(msg), 0) != strlen(msg))
-				puts("Error: Could not send data to client.");
-		} else {
-			int msglen;
-			memset(msg, 0, sizeof msg);
-			snprintf(msg, sizeof msg, "Command takes no arguments.\r\n");
-			msglen = strlen(msg);
-			if(sendall(sockfd, msg, &msglen) < 0)
-				puts("Could not send all data.");
+		memset(msg, 0, sizeof msg);
+		snprintf(msg, sizeof msg, "*** Help Below ***\r\n");
+		for(i = 0; i < CMD_COUNT; i++) {
+			strncat(msg, commands[i].cmd, sizeof msg);
+			strncat(msg, " - ", sizeof msg);
+			strncat(msg, commands[i].help, sizeof msg);
 		}
+		strncat(msg, "*** End Help ***\r\n", sizeof msg);
+		if(send(sockfd, msg, strlen(msg), 0) != strlen(msg))
+			puts("Error: Could not send data to client.");
 		return 1;
 }
 
 /* cmd_exit() - exits the remote shell.
  */
-int cmd_exit(int sockfd, char **args) {
-		if(args[0] != NULL && args[1] == NULL) {
-			return 0;
-		} else {
-			char msg[256];
-			int msglen;
-			memset(msg, 0, sizeof msg);
-			snprintf(msg, sizeof msg, "Command takes no arguments.\r\n");
-			msglen = strlen(msg);
-			if(sendall(sockfd, msg, &msglen) < 0)
-				puts("Could not send all data.");
-		}
-		return 1;
+int cmd_exit(int sockfd) {
+		return 0;
 }
 
 /* cmd_split() - split an entire command string into tokens.
@@ -777,7 +734,7 @@ int cmd_execute(int sockfd, char **args) {
 				}
 			} else {
 				for(i = 0; i < CMD_COUNT; i++) {
-					if(strncmp(args[0], builtin_str[i][SNSH_CMD], strlen(args[0])) == 0) {
+					if(strncmp(args[0], commands[i].cmd, strlen(args[0])) == 0) {
 						found = 1;
 						break;
 					} else {
@@ -786,7 +743,15 @@ int cmd_execute(int sockfd, char **args) {
 				}
 
 				if(found) {
-					return (*builtin_func[i])(sockfd, args);
+					if(commands[i].type == CMD_ARGS)
+						return commands[i].func(sockfd, args);
+					else if(commands[i].type == CMD_VOID)
+						return commands[i].func(sockfd);
+					else {
+						snprintf(data, sizeof data, "Error: Command type not valid.\r\n");
+						if(send(sockfd, data, strlen(data), 0) < 0)
+							puts("Error: Cannot send data to client.");
+					}
 				} else {
 					snprintf(data, sizeof data, "Error: Command not found.\r\n");
 					if(send(sockfd, data, strlen(data), 0) < 0)

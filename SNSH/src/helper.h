@@ -5,8 +5,8 @@
 #define CMD_TOK_SIZE 64
 #define CMD_TOK_DELIMS " \r\n\t\a"
 
-#define SNSH_CMD	0
-#define SNSH_HELP 1
+#define CMD_VOID 0
+#define CMD_ARGS 1
 
 /* commands enum */
 enum _COMMAND {
@@ -32,6 +32,14 @@ enum _COMMAND {
 	CMD_COUNT
 };
 
+struct _CMDS {
+	char *cmd;
+	char *help;
+	int (*func)();
+	unsigned char type;
+};
+typedef struct _CMDS cmd_t;
+
 /* command function prototypes */
 int cmd_cd(int sockfd, char **args);
 int cmd_ls(int sockfd, char **args);
@@ -49,8 +57,8 @@ int cmd_speak(int sockfd, char **args);
 int cmd_term(int sockfd, char **args);
 #endif
 int cmd_pivot(int sockfd, char **args);
-int cmd_help(int sockfd, char **args);
-int cmd_exit(int sockfd, char **args);
+int cmd_help(int sockfd);
+int cmd_exit(int sockfd);
 
 /* command handling function prototypes */
 int sendall(int sd, char *s, int *len);
