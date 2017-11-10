@@ -147,23 +147,23 @@ enum CMDS { /* To add new commands -- put here -- */
 
 /* -- Prototypes for commands -- */
 
-int psh_print();
-int psh_cd();
-int psh_touch();
-int psh_rm();
-int psh_rmdir();
-int psh_mkdir();
-int psh_deltree();
-int psh_clear();
-int psh_ls();
+int psh_print(char **args, int argcnt);
+int psh_cd(char **args, int argcnt);
+int psh_touch(char **args, int argcnt);
+int psh_rm(char **args, int argcnt);
+int psh_rmdir(char **args, int argcnt);
+int psh_mkdir(char **args, int argcnt);
+int psh_deltree(char **args, int argcnt);
+int psh_clear(void);
+int psh_ls(char **args, int argcnt);
 int psh_pwd(void);
 #if defined(_WIN32) || (_WIN64)          /* -- Windows only commands here -- */
-  int psh_abort();
+  int psh_abort(void);
 #endif
-int psh_reboot();
-int psh_shutdown();
-int psh_help();
-int psh_exit();
+int psh_reboot(void);
+int psh_shutdown(void);
+int psh_help(void);
+int psh_exit(void);
 
 /* -- End of prototypes -- */
 
@@ -175,7 +175,7 @@ struct COMMANDS {
 };
 typedef struct COMMANDS command_t;
 
-static command_t cmds[PSH_COUNT] = {     /* To add new commands -- put here -- */
+static const command_t cmds[PSH_COUNT] = {     /* To add new commands -- put here -- */
   { "psh_echo", "echos text to the screen.", &psh_print, 1 },
   { "cd", "change directory to a different one.", &psh_cd, 1 },
   { "touch", "create new files without data inside.", &psh_touch, 1 },
