@@ -1,8 +1,8 @@
 /***************************************************************
  * helper.c - this contains pretty much only stuff to do with  *
- *				a command line interface, for remote machines.	 *
+ * a command line interface, for remote machines.              *
  ***************************************************************
- * Created by Philip "5n4k3" Simonson			(2017)			 *
+ * Created by Philip "5n4k3" Simonson			(2017) *
  ***************************************************************
  */
 
@@ -31,7 +31,7 @@
 #endif
 
 /* builtin command strings (compared to what you enter) */
-cmd_t commands[CMD_COUNT] = {
+static const cmd_t commands[CMD_COUNT] = {
 	{ "cd",	"change directory to a new one.\r\n", &cmd_cd, CMD_ARGS },
 	{ "ls",	"list directory contents.\r\n", &cmd_ls, CMD_ARGS },
 	{ "rm",	"delete a file from the system.\r\n", &cmd_rm, CMD_ARGS },

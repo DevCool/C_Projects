@@ -1,7 +1,7 @@
 /****************************************************************
  * espeech.c - this handles all of the initialization of espeak *
- *				 library. Do NOT modify this file, or espeak may	*
- *				 may not work properly for this program.		*
+ *             library. Do NOT modify this file, or espeak may	*
+ *             may not work properly for this program.		*
  ****************************************************************
  * Created by Philip "5n4k3" Simonson		 (2017)		*
  ****************************************************************
