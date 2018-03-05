@@ -1,4 +1,4 @@
-ENTRY(boot_main);
+ENTRY(boot_main)
 SECTIONS
 {    
     . = 0x7C00;    
