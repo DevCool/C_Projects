@@ -10,4 +10,6 @@ List:
   
   - psh  - good example of regular shell.
 
+  - cboot - A simple project to wipe the CMOS.
+
 *** END OF FILE ***
