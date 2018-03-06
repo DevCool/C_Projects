@@ -12,4 +12,6 @@ List:
 
   - cboot - A simple project to wipe the CMOS.
 
+  - dboot - A simple graphics project written in C/ASM.
+
 *** END OF FILE ***
