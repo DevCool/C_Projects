@@ -1,7 +1,7 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-static inline void print_string_color(const char* pStr, unsigned char color) {
+static void print_string_color(const char* pStr, unsigned char color) {
      while(*pStr) {
 		__asm__ __volatile__(
 			"int $0x10"
@@ -11,7 +11,7 @@ static inline void print_string_color(const char* pStr, unsigned char color) {
 }
 #define print_string(M) print_string_color(M, 0x07)
 
-static inline char getch() {
+static char getch() {
      char ch;
      __asm__ __volatile__ (
           "int $0x16\n"

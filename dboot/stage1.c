@@ -1,4 +1,3 @@
-#include "common/16bits.h"
 #include "common/io.h"
 #include "common/system.h"
 
@@ -8,14 +7,15 @@
 #include "common/graphics.h"
 
 void main() {
-     char ch;
-     print_string("Hit 'G' for graphics.\r\n");
-     ch = getch();
-     if (ch == 'g' || ch == 'G') {
-          change_environment(0x13);
-          init_graphics();
-     } else {
-          print_string("Halting system.\r\n");
-     }
-     __asm__ ("cli\nhlt\n");
+	char ch;
+	print_string("Hit 'G' for graphics.\r\n");
+	ch = getch();
+	if (ch == 'g' || ch == 'G') {
+		change_environment(0x13);
+		init_graphics();
+	} else {
+		change_environment(0x03);
+		print_string("Halting system.\r\n");
+	}
+	__asm__ ("cli\nhlt\n");
 }

@@ -1,14 +1,14 @@
 #ifndef _GRAPHICS_H_
 #define _GRAPHICS_H_
 
-static inline void draw_pixel(unsigned char color, int col, int row) {
+static void draw_pixel(unsigned char color, int col, int row) {
 	/* draws pixel at specific location */
 	__asm__ __volatile__ (
 		"int $0x10" : : "a"(0x0c00 | color), "c"(col), "d"(row)
 	);
 }
 
-static inline void init_graphics() {
+static void init_graphics() {
 	int i = 0, j = 0;
 	int m = 0;
 	int cnt1 = 0, cnt2 =0;
