@@ -1,6 +1,6 @@
 SECTIONS
 {
-  . = 0x7c00;
+  . = 0x1000;
 
   .cseg :
   {
@@ -10,11 +10,6 @@ SECTIONS
   .dseg :
   {
     *(.rodata);
-  }
-
-  .sig : AT(0x7dfe)
-  {
-    SHORT(0xaa55);
   }
 
   /DISCARD/ :

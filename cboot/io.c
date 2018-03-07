@@ -1,42 +1,8 @@
 #include "code16gcc.h"
-__asm__("jmpl $0x0, $main;");
+__asm__("jmp main");
+#include "io.h"
 
-void putch(char ch)
-{
-	__asm__ __volatile__(
-		"pusha;"
-		"mov $0x0E, %%ah;"
-		"mov %0, %%al;"
-		"mov $0x0007, %%bx;"
-		"mov $1, %%cx;"
-		"int $0x10;"
-		"popa;"
-		:
-		: "r"(ch)
-	);
-}
-
-void print(const char *s)
-{
-	while (*s) {
-		putch(*s++);
-	}
-}
-
-char getch(void)
-{
-	char ch;
-	__asm__ __volatile__(
-		"mov $0x00, %%ah;"
-		"mov %%al, %0;"
-		"int $0x16;"
-		: "=r"(ch)
-		:
-	);
-	return ch;
-}
-
-void main(void)
+int main()
 {
 	unsigned char ch, i;
 	for (;;) {
