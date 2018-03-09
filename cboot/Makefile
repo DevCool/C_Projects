@@ -1,25 +1,23 @@
 CFLAGS=-Wall
-LDFLAGS=-melf_i386 -static -nostdlib -nostartfiles -nobuiltin --nmagic
+LDFLAGS=-static --oformat=binary --nmagic
 
-.PHONY: all clean disk deploy
+.PHONY: all clean disk deploy run
 all: deploy
 
 clean:
-	rm -rf *~ *.o *.out boot.bin io.sys c.img
+	rm -f *~ *.o *.out boot.bin io.sys c.img
 
 boot.o: boot.c
-	$(CC) $(CFLAGS) -Os -march=i686 -ffreestanding -m16 -c -o $@ $^
+	$(CC) $(CFLAGS) -Os -march=i686 -nostdlib -nostartfiles -nodefaultlibs -nostdinc -ffreestanding -m16 -c -o $@ $^
 
 io.o: io.c
-	$(CC) $(CFLAGS) -Os -march=i686 -ffreestanding -m16 -c -o $@ $^
+	$(CC) $(CFLAGS) -Os -march=i686 -nostdlib -nostartfiles -nodefaultlibs -nostdinc -ffreestanding -m16 -c -o $@ $^
 
 boot: boot.o
-	$(LD) $(LDFLAGS) -T boot.ld -o $@.out $^
-	objcopy -O binary $@.out $@.bin
+	$(LD) $(LDFLAGS) -m elf_i386 -T boot.ld -o $@.bin $^
 
 io: io.o
-	$(LD) $(LDFLAGS) -T io.ld -o $@.out $^
-	objcopy -O binary $@.out $@.sys
+	$(LD) $(LDFLAGS) -m elf_i386 -T io.ld -o $@.sys $^
 
 disk:
 	dd if=/dev/zero of=c.img bs=512 count=2880
