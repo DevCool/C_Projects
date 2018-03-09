@@ -2,7 +2,7 @@
 #include "io.h"
 #include "system.h"
 
-int main(void)
+void main(void)
 {
 	unsigned char cf, i, reset;
 	print("Loading sector from floppy.\r\n");
